@@ -1,70 +1,69 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import "./App.css";
 
-const Login = () => {
-  const [loading, setLoading] = useState(false);
+export default function Login() {
+  const navigate = useNavigate();
+  const [email, setEmail] = useState("");
+  const [senha, setSenha] = useState("");
 
-  const handleLogin = () => {
-    setLoading(true);
-    setTimeout(() => {
-      localStorage.setItem("isAuthenticated", "true");
-      // Redireciona manualmente
-      window.location.href = "/home";
-    }, 1000);
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    navigate("/home");
   };
 
   return (
-    <div className="min-h-screen bg-blue-500 flex items-center justify-center p-4">
-      <div className="bg-blue-400 rounded-xl p-8 w-full max-w-md">
-        <h1 className="text-3xl font-bold text-center text-white mb-2">
-          Welcome
-        </h1>
-        <h2 className="text-xl text-center text-white mb-8">Login</h2>
+    <div className="page-root">
+      {/* Header */}
+      <header className="top-header">
+        <div className="brand">
+          <img src="/src/assets/react.svg" alt="logo" className="logo" />
+          <h1 className="brand-title">React Store</h1>
+        </div>
+      </header>
 
-        <div className="space-y-4">
-          <div>
-            <label className="text-white">E-mail</label>
+      {/* Conteúdo centralizado */}
+      <main className="login-container">
+        <div className="card login-card">
+          <h2 className="card-title">Entrar</h2>
+
+          <form onSubmit={handleSubmit} className="form">
             <input
+              className="input"
               type="email"
-              placeholder="usuario@example.com"
-              className="w-full p-3 rounded-lg mt-1"
+              placeholder="Email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
             />
-          </div>
-
-          <div>
-            <label className="text-white">Senha</label>
             <input
+              className="input"
               type="password"
-              placeholder="senha123"
-              className="w-full p-3 rounded-lg mt-1"
+              placeholder="Senha"
+              value={senha}
+              onChange={(e) => setSenha(e.target.value)}
             />
-          </div>
 
-          <button
-            onClick={handleLogin}
-            disabled={loading}
-            className="w-full bg-blue-600 text-white p-3 rounded-lg text-lg font-semibold mt-4 hover:bg-blue-700"
-          >
-            {loading ? "Carregando..." : "Enter"}
-          </button>
+            <div className="form-actions">
+              <button type="submit" className="btn primary">
+                Entrar
+              </button>
+              <button
+                type="button"
+                className="btn ghost"
+                onClick={() => {
+                  setEmail("");
+                  setSenha("");
+                }}
+              >
+                Limpar
+              </button>
+            </div>
+          </form>
         </div>
+      </main>
 
-        <div className="my-8 border-t border-blue-300"></div>
-
-        <div className="text-center">
-          <p className="text-white text-sm mb-2">Credentials para teste:</p>
-          <p className="text-white text-xs">
-            Email: usuario@example.com
-            <br />
-            Senha: senha123
-          </p>
-        </div>
-
-        <div className="mt-8 text-center">
-          <p className="text-white text-xs">Clear move usuario</p>
-        </div>
-      </div>
+      {/* Footer */}
+      <footer className="bottom-footer">© 2025 React Store</footer>
     </div>
   );
-};
-
-export default Login;
+}

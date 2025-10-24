@@ -1,23 +1,18 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
+import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import Login from "./Login.jsx";
-import PaginaInicial from "./pages/Pagina_inicial.jsx";
+import Pagina_inicial from "./pages/Pagina_inicial.jsx";
 import "./index.css";
+import "./App.css";
 
-// Roteamento simples baseado na URL
-const App = () => {
-  const path = window.location.pathname;
-
-  if (path === "/home") {
-    const isAuthenticated = localStorage.getItem("isAuthenticated") === "true";
-    return isAuthenticated ? <PaginaInicial /> : <Login />;
-  }
-
-  return <Login />;
-};
+const router = createBrowserRouter([
+  { path: "/", element: <Login /> },
+  { path: "/home", element: <Pagina_inicial /> },
+]);
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
-    <App />
+    <RouterProvider router={router} />
   </React.StrictMode>
 );
