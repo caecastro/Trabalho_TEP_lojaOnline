@@ -1,4 +1,3 @@
-import React from "react";
 import Controller from "./components/views/Controller";
 import Produtos from "./components/assets/Produtos";
 
@@ -23,7 +22,7 @@ export default function App() {
 
       {/* Rodapé */}
       <footer className="w-full text-center py-6 border-t border-gray-300 text-gray-600">
-        IPSC ©2023 Created by Lidiane Valentim
+        IFSC ©2025 Created by Lidiane Visintin
       </footer>
     </div>
   );
