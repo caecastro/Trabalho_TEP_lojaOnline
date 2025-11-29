@@ -40,3 +40,12 @@ export const getUser = (id = 1) =>
     if (!res.ok) throw new Error("Failed to fetch user");
     return res.json();
   });
+
+// Buscar múltiplos usuários
+export const getMultipleUsers = (count = 10) => {
+  const promises = [];
+  for (let i = 1; i <= count; i++) {
+    promises.push(getUser(i));
+  }
+  return Promise.all(promises);
+};

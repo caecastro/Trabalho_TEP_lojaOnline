@@ -32,6 +32,12 @@ export default function Controller() {
             >
               Products
             </button>
+            <button
+              onClick={() => navigate("/clients")}
+              className="text-gray-900 hover:text-blue-700 transition"
+            >
+              Clients
+            </button>
           </div>
         </div>
 
