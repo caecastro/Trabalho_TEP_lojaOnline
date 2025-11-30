@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { useAuth } from "../../contexts/AuthContext.jsx";
+import { useAuth } from "../../contexts/AuthContext";
 import {
   Button,
   Switch,
@@ -12,8 +12,8 @@ import {
   Typography,
   message,
 } from "antd";
-import { useTheme } from "../../contexts/ThemeContext.jsx";
-import { useCart } from "../../hooks/useCart.js";
+import { useTheme } from "../../contexts/ThemeContext";
+import { useCart } from "../../hooks/useCart";
 import {
   BulbOutlined,
   BulbFilled,
@@ -25,11 +25,15 @@ import {
   LogoutOutlined,
   UserSwitchOutlined,
 } from "@ant-design/icons";
-import CartDrawer from "./CartDrawer.jsx";
+import CartDrawer from "./CartDrawer";
 
 const { useBreakpoint } = Grid;
 const { Text } = Typography;
 
+/**
+ * Componente de controle principal - header com navegação e ações
+ * Responsivo com diferentes layouts para mobile, tablet e desktop
+ */
 export default function Controller() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -39,12 +43,14 @@ export default function Controller() {
   const [cartVisible, setCartVisible] = useState(false);
   const screens = useBreakpoint();
 
+  // Realiza logout e redireciona para home
   const handleLogout = () => {
     logout();
     message.success("Logout realizado com sucesso!");
     navigate("/");
   };
 
+  // Estilo dinâmico para botões de navegação baseado na rota atual
   const getNavButtonStyle = (path) => {
     const isActive = location.pathname === path;
     return `flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-1 sm:py-2 rounded-md transition text-sm sm:text-base ${
@@ -56,7 +62,7 @@ export default function Controller() {
     }`;
   };
 
-  // Menu mobile principal
+  // Menu dropdown para dispositivos móveis
   const mobileMenuItems = [
     {
       key: "1",
@@ -76,9 +82,7 @@ export default function Controller() {
       label: "Clients",
       onClick: () => navigate("/clients"),
     },
-    {
-      type: "divider",
-    },
+    { type: "divider" },
     {
       key: "4",
       icon: isDarkMode ? <BulbFilled /> : <BulbOutlined />,
@@ -91,11 +95,9 @@ export default function Controller() {
       label: `Cart (${getTotalItems()})`,
       onClick: () => setCartVisible(true),
     },
+    { type: "divider" },
     ...(user
       ? [
-          {
-            type: "divider",
-          },
           {
             key: "6",
             icon: <LogoutOutlined />,
@@ -106,9 +108,6 @@ export default function Controller() {
         ]
       : [
           {
-            type: "divider",
-          },
-          {
             key: "6",
             icon: <UserSwitchOutlined />,
             label: "Login",
@@ -117,7 +116,7 @@ export default function Controller() {
         ]),
   ];
 
-  // Menu do usuário para mobile/tablet
+  // Menu do usuário para informações e ações
   const userMenuItems = user
     ? [
         {
@@ -134,9 +133,7 @@ export default function Controller() {
           ),
           disabled: true,
         },
-        {
-          type: "divider",
-        },
+        { type: "divider" },
         {
           key: "profile",
           icon: <UserOutlined />,
@@ -160,16 +157,15 @@ export default function Controller() {
         },
       ];
 
-  // Nome abreviado para mobile
+  // Formata nome do usuário para diferentes tamanhos de tela
   const getAbbreviatedName = (name) => {
     if (!name) return "User";
-    if (screens.xs) {
+    if (screens.xs)
       return name
         .split(" ")
         .map((word) => word[0])
         .join("")
         .toUpperCase();
-    }
     if (screens.sm) {
       const names = name.split(" ");
       return names.length > 1 ? `${names[0]} ${names[1][0]}.` : names[0];
@@ -177,11 +173,8 @@ export default function Controller() {
     return name;
   };
 
-  // Avatar do usuário
-  const getUserAvatar = () => {
-    if (!user) return "U";
-    return user.name?.charAt(0).toUpperCase() || "U";
-  };
+  // Gera inicial para avatar baseado no nome
+  const getUserAvatar = () => user?.name?.charAt(0).toUpperCase() || "U";
 
   return (
     <>
@@ -197,8 +190,9 @@ export default function Controller() {
             screens.xs ? "px-2 py-2" : "px-3 sm:px-4 lg:px-6 py-3 sm:py-4"
           }`}
         >
+          {/* Linha principal do header */}
           <div className="flex items-center justify-between gap-2 sm:gap-4">
-            {/* Logo */}
+            {/* Logo e nome da loja */}
             <div
               className="flex items-center gap-1 sm:gap-2 cursor-pointer flex-shrink-0"
               onClick={() => navigate("/")}
@@ -206,9 +200,7 @@ export default function Controller() {
               <img
                 src="https://cdn-icons-png.flaticon.com/512/3081/3081559.png"
                 alt="Logo"
-                className={`${
-                  screens.xs ? "w-6 h-6" : "w-7 h-7 sm:w-8 sm:h-8"
-                }`}
+                className={screens.xs ? "w-6 h-6" : "w-7 h-7 sm:w-8 sm:h-8"}
               />
               <span
                 className={`font-semibold ${
@@ -219,7 +211,7 @@ export default function Controller() {
               </span>
             </div>
 
-            {/* Navegação Principal - Desktop */}
+            {/* Navegação para desktop */}
             <div className="hidden md:flex items-center gap-1 lg:gap-2 flex-1 justify-center">
               <Button
                 type="text"
@@ -247,7 +239,7 @@ export default function Controller() {
               </Button>
             </div>
 
-            {/* Navegação Principal - Tablet */}
+            {/* Navegação para tablet (apenas ícones) */}
             <div className="hidden sm:flex md:hidden items-center gap-1 flex-1 justify-center">
               <Button
                 type="text"
@@ -269,9 +261,9 @@ export default function Controller() {
               />
             </div>
 
-            {/* Controles Direita */}
+            {/* Área de controles à direita */}
             <div className="flex items-center gap-1 sm:gap-2 lg:gap-3 flex-shrink-0">
-              {/* Toggle Theme - Sempre visível */}
+              {/* Toggle de tema claro/escuro */}
               <Switch
                 checked={isDarkMode}
                 onChange={toggleTheme}
@@ -283,7 +275,7 @@ export default function Controller() {
                 }
               />
 
-              {/* Carrinho - Sempre visível */}
+              {/* Ícone do carrinho com badge de quantidade */}
               <Badge
                 count={getTotalItems()}
                 size="small"
@@ -306,7 +298,7 @@ export default function Controller() {
                 </Button>
               </Badge>
 
-              {/* Informações do Usuário - Desktop */}
+              {/* Informações do usuário para desktop */}
               {screens.lg && user && (
                 <Space size="small">
                   <Avatar
@@ -340,15 +332,12 @@ export default function Controller() {
                 </Space>
               )}
 
-              {/* Informações do Usuário - Tablet */}
+              {/* Usuário logado em tablet */}
               {screens.sm && !screens.lg && user && (
                 <Space size="small">
                   <Avatar
                     size="small"
-                    style={{
-                      backgroundColor: "#1890ff",
-                      fontSize: "12px",
-                    }}
+                    style={{ backgroundColor: "#1890ff", fontSize: "12px" }}
                   >
                     {getUserAvatar()}
                   </Avatar>
@@ -362,7 +351,7 @@ export default function Controller() {
                 </Space>
               )}
 
-              {/* Usuário não logado - Desktop/Tablet */}
+              {/* Usuário não logado em desktop/tablet */}
               {screens.sm && !user && (
                 <Button
                   type="text"
@@ -373,13 +362,12 @@ export default function Controller() {
                 </Button>
               )}
 
-              {/* Menu Mobile Principal */}
+              {/* Menu mobile principal */}
               <div className="sm:hidden">
                 <Dropdown
                   menu={{ items: mobileMenuItems }}
                   placement="bottomRight"
                   trigger={["click"]}
-                  overlayStyle={{ minWidth: 200 }}
                   arrow
                 >
                   <Button
@@ -395,7 +383,7 @@ export default function Controller() {
                 </Dropdown>
               </div>
 
-              {/* Menu do Usuário para Tablet */}
+              {/* Menu do usuário para tablet */}
               {screens.sm && !screens.lg && (
                 <div className="md:hidden">
                   <Dropdown
@@ -412,10 +400,7 @@ export default function Controller() {
                       {user && (
                         <Avatar
                           size="small"
-                          style={{
-                            backgroundColor: "#1890ff",
-                            marginRight: user ? 0 : undefined,
-                          }}
+                          style={{ backgroundColor: "#1890ff" }}
                         >
                           {getUserAvatar()}
                         </Avatar>
@@ -425,7 +410,7 @@ export default function Controller() {
                 </div>
               )}
 
-              {/* Menu do Usuário para Desktop (apenas quando não está expandido) */}
+              {/* Menu do usuário para desktop compacto */}
               {screens.lg && user && (
                 <div className="lg:hidden xl:block">
                   <Dropdown
@@ -452,7 +437,7 @@ export default function Controller() {
             </div>
           </div>
 
-          {/* Navegação Secundária - Tablet (texto abaixo) */}
+          {/* Navegação secundária para tablet (labels abaixo) */}
           {screens.sm && !screens.md && (
             <div className="flex justify-center mt-2">
               <Space size="middle">
@@ -504,6 +489,7 @@ export default function Controller() {
         </div>
       </header>
 
+      {/* Drawer do carrinho de compras */}
       <CartDrawer visible={cartVisible} onClose={() => setCartVisible(false)} />
     </>
   );

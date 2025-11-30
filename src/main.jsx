@@ -3,17 +3,18 @@ import { createRoot } from "react-dom/client";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import { Provider } from "react-redux";
 import { ConfigProvider } from "antd";
-import { AuthProvider } from "./contexts/AuthContext.jsx";
-import { ThemeProvider } from "./contexts/ThemeContext.jsx";
-import { store, loadInitialData } from "./store/index.js";
-import App from "./App.jsx";
-import Products from "./pages/Products.jsx";
-import Clients from "./pages/Clients.jsx";
+import { AuthProvider } from "./contexts/AuthContext";
+import { ThemeProvider } from "./contexts/ThemeContext";
+import { store, loadInitialData } from "./store";
+import App from "./App";
+import Products from "./pages/Products";
+import Clients from "./pages/Clients";
 import "./index.css";
 
-// Carregar dados ao iniciar
+// Inicializa dados persistidos
 loadInitialData();
 
+// Configuração de rotas
 const router = createBrowserRouter([
   {
     path: "/",
@@ -29,6 +30,7 @@ const router = createBrowserRouter([
   },
 ]);
 
+// Renderização principal
 createRoot(document.getElementById("root")).render(
   <StrictMode>
     <Provider store={store}>
@@ -37,7 +39,7 @@ createRoot(document.getElementById("root")).render(
           <ConfigProvider
             theme={{
               token: {
-                colorPrimary: "#1890ff",
+                colorPrimary: "#1890ff", // Cor primária da aplicação
               },
             }}
           >

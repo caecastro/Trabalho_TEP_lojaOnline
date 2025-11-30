@@ -11,13 +11,18 @@ import {
   Tag,
 } from "antd";
 import PropTypes from "prop-types";
-import { useCart } from "../../hooks/useCart.js";
-import { useTheme } from "../../contexts/ThemeContext.jsx";
+import { useCart } from "../../hooks/useCart";
+import { useTheme } from "../../contexts/ThemeContext";
 import { EditOutlined, DeleteOutlined } from "@ant-design/icons";
 
 const { Text, Paragraph } = Typography;
 const { useBreakpoint } = Grid;
 
+/**
+ * Componente de card para exibição de produto em grid
+ * Responsivo com diferentes layouts para mobile e desktop
+ * Suporta ações de compra, edição e exclusão
+ */
 export default function ProductGridItem({
   product,
   onBuy,
@@ -30,31 +35,30 @@ export default function ProductGridItem({
   const { isDarkMode } = useTheme();
   const screens = useBreakpoint();
 
+  // Imagem de fallback para produtos sem imagem
   const fallbackImage =
     "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120' viewBox='0 0 120 120'%3E%3Crect width='120' height='120' fill='%23f5f5f5'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-family='Arial' font-size='14' fill='%23999'%3EImagem Indisponível%3C/text%3E%3C/svg%3E";
 
+  // Adiciona produto ao carrinho
   const handleBuy = () => {
     addItem(product);
     message.success(`${product.title} adicionado ao carrinho!`);
-    if (onBuy) {
-      onBuy(product);
-    }
+    if (onBuy) onBuy(product);
   };
 
+  // Abre modal de edição
   const handleEdit = () => {
     if (onEdit) onEdit(product);
   };
 
+  // Solicita confirmação para exclusão
   const handleDelete = () => {
     if (onDelete) onDelete(product);
   };
 
-  const shortenText = (text, maxLength) => {
-    if (text.length > maxLength) {
-      return text.substring(0, maxLength) + "...";
-    }
-    return text;
-  };
+  // Trunca textos longos para caber no layout
+  const shortenText = (text, maxLength) =>
+    text.length > maxLength ? text.substring(0, maxLength) + "..." : text;
 
   const isCompact = compact || screens.xs;
   const isLocalProduct = product.isLocal;
@@ -74,7 +78,7 @@ export default function ProductGridItem({
       }}
       className="hover:shadow-lg"
     >
-      {/* Tag para produtos locais */}
+      {/* Tag identificadora para produtos locais */}
       {isLocalProduct && (
         <Tag
           color="blue"
@@ -91,7 +95,7 @@ export default function ProductGridItem({
         </Tag>
       )}
 
-      {/* Imagem do Produto */}
+      {/* Imagem do produto com tamanho responsivo */}
       <div
         style={{
           textAlign: "center",
@@ -103,18 +107,15 @@ export default function ProductGridItem({
           alt={product.title}
           width={isCompact ? 80 : 120}
           height={isCompact ? 80 : 120}
-          style={{
-            objectFit: "contain",
-            borderRadius: "6px",
-          }}
+          style={{ objectFit: "contain", borderRadius: "6px" }}
           fallback={fallbackImage}
           preview={true}
         />
       </div>
 
-      {/* Conteúdo do Produto */}
+      {/* Conteúdo informativo do produto */}
       <Flex vertical style={{ flex: 1 }} gap={isCompact ? "x-small" : "small"}>
-        {/* Título do Produto */}
+        {/* Título do produto */}
         <Text
           strong
           style={{
@@ -128,7 +129,7 @@ export default function ProductGridItem({
           {shortenText(product.title, isCompact ? 40 : 50)}
         </Text>
 
-        {/* Rating - Oculto em modo muito compacto */}
+        {/* Rating - oculto em layout compacto */}
         {!isCompact && (
           <Flex gap="small" align="center">
             <Rate
@@ -142,7 +143,7 @@ export default function ProductGridItem({
           </Flex>
         )}
 
-        {/* Descrição - Oculto em modo compacto */}
+        {/* Descrição - oculto em layout compacto */}
         {!isCompact && (
           <Paragraph
             type="secondary"
@@ -160,7 +161,7 @@ export default function ProductGridItem({
           </Paragraph>
         )}
 
-        {/* Preço e Botões de Ação */}
+        {/* Área de preço e ações */}
         <Flex
           justify="space-between"
           align="center"
@@ -179,6 +180,7 @@ export default function ProductGridItem({
           </Text>
 
           <Flex gap="small" align="center" wrap="wrap">
+            {/* Botão de compra */}
             <Button
               type="primary"
               size={isCompact ? "small" : "middle"}
@@ -189,10 +191,10 @@ export default function ProductGridItem({
               }}
               onClick={handleBuy}
             >
-              {isCompact ? "Buy" : "Buy"}
+              Buy
             </Button>
 
-            {/* Ações de Editar/Excluir - apenas para produtos locais e usuário logado */}
+            {/* Ações de edição/exclusão apenas para produtos locais */}
             {showActions && isLocalProduct && (
               <Flex gap="x-small">
                 <Button
@@ -226,6 +228,7 @@ export default function ProductGridItem({
   );
 }
 
+// Validação de props para melhor debugging
 ProductGridItem.propTypes = {
   product: PropTypes.shape({
     id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,

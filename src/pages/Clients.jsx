@@ -21,28 +21,26 @@ import {
   DeleteOutlined,
   PlusOutlined,
   MailOutlined,
-  MenuOutlined,
 } from "@ant-design/icons";
-import Controller from "../components/views/Controller.jsx";
-import { useTheme } from "../contexts/ThemeContext.jsx";
+import Controller from "../components/views/Controller";
+import { useTheme } from "../contexts/ThemeContext";
 import {
-  setClients,
   addClient,
   updateClient,
   removeClient,
-} from "../store/slices/clientSlice.js";
+} from "../store/slices/clientSlice";
 
 const { Title, Text } = Typography;
 const { Option } = Select;
 const { useBreakpoint } = Grid;
 
+// Utilitários para formatação
 const capitalizeFirstLetter = (string) =>
   string ? string.charAt(0).toUpperCase() + string.slice(1).toLowerCase() : "";
 
 const formatDate = (date) => {
   if (!date) return "";
-  const d = new Date(date);
-  return d.toLocaleDateString("en-GB", {
+  return new Date(date).toLocaleDateString("en-GB", {
     day: "2-digit",
     month: "2-digit",
     year: "numeric",
@@ -55,6 +53,7 @@ export default function Clients() {
   const { isDarkMode } = useTheme();
   const screens = useBreakpoint();
 
+  // Estados para modais e formulários
   const [drawerVisible, setDrawerVisible] = useState(false);
   const [deleteModalVisible, setDeleteModalVisible] = useState(false);
   const [newClientModalVisible, setNewClientModalVisible] = useState(false);
@@ -63,25 +62,11 @@ export default function Clients() {
   const [form] = Form.useForm();
   const [newClientForm] = Form.useForm();
 
-  useEffect(() => {
-    // Ajustar drawer width baseado no tamanho da tela
-    if (drawerVisible && screens.xs) {
-      // Para mobile, usar drawer full screen
-      document
-        .querySelector(".ant-drawer-content-wrapper")
-        ?.style.setProperty("width", "100%", "important");
-    }
-  }, [drawerVisible, screens.xs]);
-
+  // Manipuladores de ações
   const handleAddClient = (values) => {
     const newClient = {
       id: Date.now().toString(),
-      firstName: values.firstName,
-      lastName: values.lastName,
-      email: values.email,
-      address: values.address,
-      phone: values.phone,
-      status: values.status,
+      ...values,
     };
 
     dispatch(addClient(newClient));
@@ -118,6 +103,7 @@ export default function Clients() {
     }
   };
 
+  // Abrir modais/drawers
   const openEditDrawer = (client) => {
     setEditingClient(client);
     form.setFieldsValue(client);
@@ -133,6 +119,7 @@ export default function Clients() {
     setNewClientModalVisible(true);
   };
 
+  // Fechar todos os modais e resetar forms
   const handleCancel = () => {
     setDrawerVisible(false);
     setNewClientModalVisible(false);
@@ -143,6 +130,7 @@ export default function Clients() {
     newClientForm.resetFields();
   };
 
+  // Configuração das colunas da tabela
   const columns = [
     {
       title: "Name",
@@ -193,10 +181,8 @@ export default function Clients() {
       key: "address",
       render: (address) => (
         <Text className="text-xs sm:text-sm" ellipsis={{ tooltip: address }}>
-          {screens.xs
-            ? address?.length > 15
-              ? address.substring(0, 15) + "..."
-              : address
+          {screens.xs && address?.length > 15
+            ? address.substring(0, 15) + "..."
             : address}
         </Text>
       ),
@@ -228,9 +214,7 @@ export default function Clients() {
             ? status === "activated"
               ? "ACT"
               : "DEACT"
-            : status === "activated"
-            ? "ACTIVATED"
-            : "DEACTIVATED"}
+            : status.toUpperCase()}
         </Tag>
       ),
     },
@@ -277,15 +261,10 @@ export default function Clients() {
       }`}
     >
       <Controller />
+
       <div className="flex-1 w-full max-w-7xl mx-auto px-3 sm:px-4 lg:px-6 py-4 sm:py-6 lg:py-8">
-        <Card
-          className={isDarkMode ? "bg-gray-800 border-gray-700" : ""}
-          styles={{
-            body: {
-              padding: screens.xs ? "16px" : "24px",
-            },
-          }}
-        >
+        <Card className={isDarkMode ? "bg-gray-800 border-gray-700" : ""}>
+          {/* Cabeçalho com título e botão de ação */}
           <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 mb-4 sm:mb-6">
             <Title
               level={screens.xs ? 3 : 2}
@@ -297,15 +276,16 @@ export default function Clients() {
             </Title>
             <Button
               type="primary"
-              icon={screens.xs ? <PlusOutlined /> : <PlusOutlined />}
+              icon={<PlusOutlined />}
               onClick={openNewClientModal}
-              className="bg-blue-600 hover:bg-blue-700 border-blue-600 w-full lg:w-auto"
+              className="w-full lg:w-auto"
               size={screens.xs ? "middle" : "large"}
             >
               {screens.xs ? "New" : "New Client"}
             </Button>
           </div>
 
+          {/* Tabela de clientes */}
           <div className="overflow-x-auto">
             <Table
               dataSource={clients}
@@ -330,18 +310,13 @@ export default function Clients() {
         </Card>
       </div>
 
-      {/* Drawer de Edição Responsivo */}
+      {/* Drawer para edição de cliente */}
       <Drawer
         title="Edit Client"
         placement="right"
         onClose={handleCancel}
         open={drawerVisible}
         width={screens.xs ? "100%" : 400}
-        styles={{
-          body: {
-            padding: screens.xs ? "16px 0" : "20px 0",
-          },
-        }}
         extra={
           screens.xs && (
             <Button type="text" onClick={handleCancel}>
@@ -376,7 +351,7 @@ export default function Clients() {
             name="email"
             rules={[
               { required: true, message: "Please enter email" },
-              { type: "email", message: "Please enter a valid email" },
+              { type: "email" },
             ]}
           >
             <Input />
@@ -404,20 +379,13 @@ export default function Clients() {
         </Form>
       </Drawer>
 
-      {/* Modal Novo Cliente Responsivo */}
+      {/* Modal para novo cliente */}
       <Modal
         title="New Client"
         open={newClientModalVisible}
         onCancel={handleCancel}
         footer={null}
         width={screens.xs ? "95%" : 500}
-        maskClosable={false}
-        keyboard={false}
-        style={{
-          top: screens.xs ? 20 : 100,
-          maxHeight: screens.xs ? "90vh" : "80vh",
-          overflow: "auto",
-        }}
       >
         <Form
           form={newClientForm}
@@ -428,24 +396,21 @@ export default function Clients() {
           <Form.Item
             label="First Name"
             name="firstName"
-            rules={[{ required: true, message: "Please enter first name" }]}
+            rules={[{ required: true }]}
           >
             <Input />
           </Form.Item>
           <Form.Item
             label="Last Name"
             name="lastName"
-            rules={[{ required: true, message: "Please enter last name" }]}
+            rules={[{ required: true }]}
           >
             <Input />
           </Form.Item>
           <Form.Item
             label="Email"
             name="email"
-            rules={[
-              { required: true, message: "Please enter email" },
-              { type: "email", message: "Please enter a valid email" },
-            ]}
+            rules={[{ required: true }, { type: "email" }]}
           >
             <Input />
           </Form.Item>
@@ -455,11 +420,7 @@ export default function Clients() {
           <Form.Item label="Phone" name="phone">
             <Input />
           </Form.Item>
-          <Form.Item
-            label="Status"
-            name="status"
-            rules={[{ required: true, message: "Please select status" }]}
-          >
+          <Form.Item label="Status" name="status" rules={[{ required: true }]}>
             <Select>
               <Option value="activated">Activated</Option>
               <Option value="deactivated">Deactivated</Option>
@@ -476,7 +437,7 @@ export default function Clients() {
         </Form>
       </Modal>
 
-      {/* Modal Confirmação Exclusão Responsivo */}
+      {/* Modal de confirmação de exclusão */}
       <Modal
         title="Confirm Delete"
         open={deleteModalVisible}
@@ -497,6 +458,7 @@ export default function Clients() {
         <p className="text-red-500">This action cannot be undone.</p>
       </Modal>
 
+      {/* Footer */}
       <footer
         className={`w-full text-center py-4 sm:py-6 border-t text-sm sm:text-base ${
           isDarkMode

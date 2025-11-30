@@ -1,4 +1,3 @@
-// src/components/assets/ProductCard.jsx
 import {
   Image,
   Button,
@@ -9,12 +8,16 @@ import {
   Popconfirm,
 } from "antd";
 import PropTypes from "prop-types";
-import { useTheme } from "../../contexts/ThemeContext.jsx";
-import { useCart } from "../../contexts/CartContext.jsx";
+import { useTheme } from "../../contexts/ThemeContext";
+import { useCart } from "../../hooks/useCart";
 import { EditOutlined, DeleteOutlined } from "@ant-design/icons";
 
 const { Text, Paragraph } = Typography;
 
+/**
+ * Componente de card para exibição de produto
+ * Versão alternativa usando Card do Ant Design com ações no rodapé
+ */
 export default function ProductCard({
   product,
   onBuy,
@@ -25,9 +28,11 @@ export default function ProductCard({
   const { isDarkMode } = useTheme();
   const { addItem } = useCart();
 
+  // Imagem de fallback para produtos sem imagem
   const fallbackImage =
     "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120' viewBox='0 0 120 120'%3E%3Crect width='120' height='120' fill='%23f5f5f5'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-family='Arial' font-size='14' fill='%23999'%3EImagem Indisponível%3C/text%3E%3C/svg%3E";
 
+  // Adiciona produto ao carrinho com notificação
   const handleBuy = () => {
     addItem(product);
     notification.success({
@@ -35,15 +40,15 @@ export default function ProductCard({
       description: `${product.title} foi adicionado ao carrinho.`,
     });
 
-    if (onBuy) {
-      onBuy(product);
-    }
+    if (onBuy) onBuy(product);
   };
 
+  // Abre modal de edição
   const handleEdit = () => {
     if (onEdit) onEdit(product);
   };
 
+  // Solicita confirmação para exclusão
   const handleDelete = () => {
     if (onDelete) onDelete(product);
   };
@@ -65,6 +70,7 @@ export default function ProductCard({
           />
         </div>
       }
+      // Ações no rodapé do card (editar/excluir)
       actions={
         showActions
           ? [
@@ -98,7 +104,9 @@ export default function ProductCard({
           : []
       }
     >
+      {/* Conteúdo principal do card */}
       <div className="flex flex-col h-full">
+        {/* Título do produto com truncamento */}
         <Text
           strong
           className={`text-lg block mb-2 line-clamp-2 ${
@@ -108,6 +116,7 @@ export default function ProductCard({
           {product.title}
         </Text>
 
+        {/* Rating e contagem de avaliações */}
         <div className="flex items-center gap-2 mb-2">
           <Rate
             disabled
@@ -122,6 +131,7 @@ export default function ProductCard({
           </Text>
         </div>
 
+        {/* Descrição do produto com truncamento */}
         <Paragraph
           type="secondary"
           className={`text-sm mb-4 line-clamp-3 flex-1 ${
@@ -132,6 +142,7 @@ export default function ProductCard({
           {product.description}
         </Paragraph>
 
+        {/* Área de preço e botão de compra */}
         <div className="flex justify-between items-center mt-auto">
           <Text
             strong
@@ -152,6 +163,7 @@ export default function ProductCard({
   );
 }
 
+// Validação de props para melhor debugging
 ProductCard.propTypes = {
   product: PropTypes.shape({
     id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,

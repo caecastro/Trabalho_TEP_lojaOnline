@@ -4,9 +4,14 @@ import PropTypes from "prop-types";
 const { Option } = Select;
 const { TextArea } = Input;
 
+/**
+ * Modal para adição de novos produtos
+ * Formulário com validação para criar produtos customizados
+ */
 export default function AddProductModal({ visible, onCancel, onAddProduct }) {
   const [form] = Form.useForm();
 
+  // Submete dados do formulário para criação do produto
   const handleSubmit = async (values) => {
     try {
       const productData = {
@@ -25,6 +30,7 @@ export default function AddProductModal({ visible, onCancel, onAddProduct }) {
     }
   };
 
+  // Fecha modal e limpa formulário
   const handleCancel = () => {
     form.resetFields();
     onCancel();
@@ -42,9 +48,9 @@ export default function AddProductModal({ visible, onCancel, onAddProduct }) {
       maskClosable={false}
       keyboard={false}
       width={600}
-      afterClose={() => form.resetFields()} // CORREÇÃO: resetar após fechar
+      afterClose={() => form.resetFields()} // Garante reset após fechar completamente
     >
-      {/* CORREÇÃO: Form conectado ao Modal */}
+      {/* Formulário de criação de produto */}
       <Form
         form={form}
         layout="vertical"
@@ -111,6 +117,7 @@ export default function AddProductModal({ visible, onCancel, onAddProduct }) {
   );
 }
 
+// Validação de props para melhor debugging
 AddProductModal.propTypes = {
   visible: PropTypes.bool.isRequired,
   onCancel: PropTypes.func.isRequired,

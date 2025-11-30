@@ -1,8 +1,9 @@
 import { configureStore } from "@reduxjs/toolkit";
-import productReducer from "./slices/productSlice.js";
-import clientReducer from "./slices/clientSlice.js";
-import cartReducer from "./slices/cartSlice.js";
+import productReducer from "./slices/productSlice";
+import clientReducer from "./slices/clientSlice";
+import cartReducer from "./slices/cartSlice";
 
+// Configuração centralizada do store Redux
 export const store = configureStore({
   reducer: {
     products: productReducer,
@@ -11,42 +12,59 @@ export const store = configureStore({
   },
 });
 
-// Carregar dados do localStorage ao inicializar
+// Chaves para localStorage
+const STORAGE_KEYS = {
+  CART: "cart",
+  CLIENTS: "clients",
+  PRODUCTS: "products",
+};
+
+// Carrega dados persistidos ao inicializar a aplicação
 export const loadInitialData = () => {
   try {
-    // Carrinho
-    const savedCart = localStorage.getItem("cart");
+    // Carrinho - recupera itens salvos
+    const savedCart = localStorage.getItem(STORAGE_KEYS.CART);
     if (savedCart) {
-      const cartItems = JSON.parse(savedCart);
-      store.dispatch({ type: "cart/setCart", payload: cartItems });
+      store.dispatch({ type: "cart/setCart", payload: JSON.parse(savedCart) });
     }
 
-    // Clients
-    const savedClients = localStorage.getItem("clients");
+    // Clientes - recupera lista salva
+    const savedClients = localStorage.getItem(STORAGE_KEYS.CLIENTS);
     if (savedClients) {
-      const clients = JSON.parse(savedClients);
-      store.dispatch({ type: "clients/setClients", payload: clients });
+      store.dispatch({
+        type: "clients/setClients",
+        payload: JSON.parse(savedClients),
+      });
     }
 
-    // PRODUTOS - ADICIONADO
-    const savedProducts = localStorage.getItem("products");
+    // Produtos - recupera lista salva
+    const savedProducts = localStorage.getItem(STORAGE_KEYS.PRODUCTS);
     if (savedProducts) {
-      const products = JSON.parse(savedProducts);
-      store.dispatch({ type: "products/setProducts", payload: products });
+      store.dispatch({
+        type: "products/setProducts",
+        payload: JSON.parse(savedProducts),
+      });
     }
   } catch (error) {
-    console.error("Failed to load data from localStorage:", error);
+    console.error("Erro ao carregar dados do localStorage:", error);
   }
 };
 
-// Salvar dados no localStorage sempre que mudarem
+// Persiste automaticamente mudanças de estado no localStorage
 store.subscribe(() => {
   const state = store.getState();
+
   try {
-    localStorage.setItem("cart", JSON.stringify(state.cart.items));
-    localStorage.setItem("clients", JSON.stringify(state.clients.list));
-    localStorage.setItem("products", JSON.stringify(state.products.list)); // ADICIONADO
+    localStorage.setItem(STORAGE_KEYS.CART, JSON.stringify(state.cart.items));
+    localStorage.setItem(
+      STORAGE_KEYS.CLIENTS,
+      JSON.stringify(state.clients.list)
+    );
+    localStorage.setItem(
+      STORAGE_KEYS.PRODUCTS,
+      JSON.stringify(state.products.list)
+    );
   } catch (error) {
-    console.error("Failed to save data to localStorage:", error);
+    console.error("Erro ao salvar dados no localStorage:", error);
   }
 });

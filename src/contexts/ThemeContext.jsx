@@ -1,8 +1,13 @@
 import React, { createContext, useState, useContext, useEffect } from "react";
 import { ConfigProvider } from "antd";
 
+// Context para gerenciamento de tema
 const ThemeContext = createContext();
 
+/**
+ * Hook para acessar o contexto de tema
+ * @throws {Error} Se usado fora do ThemeProvider
+ */
 export const useTheme = () => {
   const context = useContext(ThemeContext);
   if (!context) {
@@ -11,16 +16,22 @@ export const useTheme = () => {
   return context;
 };
 
+/**
+ * Provider para gerenciamento de tema claro/escuro
+ * Integra com Ant Design e persiste preferência no localStorage
+ */
 export const ThemeProvider = ({ children }) => {
+  // Estado do tema com valor inicial do localStorage
   const [isDarkMode, setIsDarkMode] = useState(() => {
     const savedTheme = localStorage.getItem("theme");
     return savedTheme ? savedTheme === "dark" : false;
   });
 
+  // Persiste tema no localStorage e aplica classes CSS
   useEffect(() => {
     localStorage.setItem("theme", isDarkMode ? "dark" : "light");
 
-    // Aplicar classe ao body para temas personalizados
+    // Aplica classes de tema no body para estilização global
     if (isDarkMode) {
       document.body.classList.add("dark-theme");
       document.body.classList.remove("light-theme");
@@ -30,11 +41,12 @@ export const ThemeProvider = ({ children }) => {
     }
   }, [isDarkMode]);
 
+  // Alterna entre temas claro e escuro
   const toggleTheme = () => {
     setIsDarkMode(!isDarkMode);
   };
 
-  // Configuração do tema Ant Design
+  // Configuração do tema para componentes Ant Design
   const themeConfig = {
     token: {
       colorPrimary: "#1890ff",

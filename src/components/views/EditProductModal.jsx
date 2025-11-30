@@ -5,6 +5,10 @@ import PropTypes from "prop-types";
 const { Option } = Select;
 const { TextArea } = Input;
 
+/**
+ * Modal para edição de produtos existentes
+ * Preenche automaticamente os campos com dados do produto
+ */
 export default function EditProductModal({
   visible,
   onCancel,
@@ -13,7 +17,7 @@ export default function EditProductModal({
 }) {
   const [form] = Form.useForm();
 
-  // Preencher form quando produto mudar
+  // Preenche formulário quando produto ou visibilidade mudam
   useEffect(() => {
     if (product && visible) {
       form.setFieldsValue({
@@ -26,6 +30,7 @@ export default function EditProductModal({
     }
   }, [product, visible, form]);
 
+  // Submete dados do formulário para edição
   const handleSubmit = async (values) => {
     try {
       const productData = {
@@ -44,6 +49,7 @@ export default function EditProductModal({
     }
   };
 
+  // Fecha modal e reseta formulário
   const handleCancel = () => {
     form.resetFields();
     onCancel();
@@ -61,9 +67,9 @@ export default function EditProductModal({
       maskClosable={false}
       keyboard={false}
       width={600}
-      afterClose={() => form.resetFields()} // CORREÇÃO: resetar após fechar
+      afterClose={() => form.resetFields()} // Garante reset após fechar
     >
-      {/* CORREÇÃO: Form conectado ao Modal */}
+      {/* Formulário de edição de produto */}
       <Form
         form={form}
         layout="vertical"
@@ -130,6 +136,7 @@ export default function EditProductModal({
   );
 }
 
+// Validação de props para melhor debugging
 EditProductModal.propTypes = {
   visible: PropTypes.bool.isRequired,
   onCancel: PropTypes.func.isRequired,

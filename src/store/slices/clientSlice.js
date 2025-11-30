@@ -1,17 +1,21 @@
 import { createSlice } from "@reduxjs/toolkit";
 
-// Função para gerar data aleatória nos últimos 5 anos
+// Gera data aleatória nos últimos 5 anos para novos clientes
 const generateRandomDate = () => {
-  const currentDate = new Date();
-  const fiveYearsAgo = new Date();
-  fiveYearsAgo.setFullYear(currentDate.getFullYear() - 5);
+  const current = new Date();
+  const fiveYearsAgo = new Date(
+    current.getFullYear() - 5,
+    current.getMonth(),
+    current.getDate()
+  );
 
   const randomTime =
     fiveYearsAgo.getTime() +
-    Math.random() * (currentDate.getTime() - fiveYearsAgo.getTime());
-  return new Date(randomTime).toISOString().split("T")[0];
+    Math.random() * (current.getTime() - fiveYearsAgo.getTime());
+  return new Date(randomTime).toISOString().split("T")[0]; // Retorna apenas a data (YYYY-MM-DD)
 };
 
+// Estado inicial com cliente de exemplo
 const initialState = {
   list: [
     {
@@ -33,9 +37,12 @@ const clientsSlice = createSlice({
   name: "clients",
   initialState,
   reducers: {
+    // Substitui toda a lista de clientes
     setClients: (state, action) => {
       state.list = action.payload;
     },
+
+    // Adiciona novo cliente com data de contato gerada automaticamente
     addClient: (state, action) => {
       const newClient = {
         ...action.payload,
@@ -43,9 +50,13 @@ const clientsSlice = createSlice({
       };
       state.list.push(newClient);
     },
+
+    // Remove cliente por ID
     removeClient: (state, action) => {
       state.list = state.list.filter((c) => c.id !== action.payload);
     },
+
+    // Atualiza dados de cliente específico
     updateClient: (state, action) => {
       const { id, data } = action.payload;
       const index = state.list.findIndex((c) => c.id === id);
@@ -53,9 +64,13 @@ const clientsSlice = createSlice({
         state.list[index] = { ...state.list[index], ...data };
       }
     },
+
+    // Controla estado de carregamento
     setLoading: (state, action) => {
       state.loading = action.payload;
     },
+
+    // Define mensagem de erro
     setError: (state, action) => {
       state.error = action.payload;
     },

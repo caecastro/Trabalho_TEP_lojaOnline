@@ -1,51 +1,39 @@
 const BASE_URL = "https://fakestoreapi.com";
+const USERS_URL = "https://jsonplaceholder.typicode.com";
 
+// Função utilitária para fetch com tratamento de erro
+const fetchData = async (url) => {
+  const response = await fetch(url);
+  if (!response.ok) throw new Error(`Erro na requisição: ${url}`);
+  return response.json();
+};
+
+// API para produtos - FakeStore API
 export const api = {
-  // Buscar produtos com limite opcional
+  // Busca produtos com limite opcional
   getProducts: (limit = null) => {
     const url = limit
       ? `${BASE_URL}/products?limit=${limit}`
       : `${BASE_URL}/products`;
-    return fetch(url).then((res) => {
-      if (!res.ok) throw new Error("Failed to fetch products");
-      return res.json();
-    });
+    return fetchData(url);
   },
 
-  // Buscar um produto por ID
-  getProduct: (id) =>
-    fetch(`${BASE_URL}/products/${id}`).then((res) => {
-      if (!res.ok) throw new Error("Failed to fetch product");
-      return res.json();
-    }),
+  // Busca produto específico por ID
+  getProduct: (id) => fetchData(`${BASE_URL}/products/${id}`),
 
-  // Buscar todas as categorias
-  getCategories: () =>
-    fetch(`${BASE_URL}/products/categories`).then((res) => {
-      if (!res.ok) throw new Error("Failed to fetch categories");
-      return res.json();
-    }),
+  // Busca todas as categorias disponíveis
+  getCategories: () => fetchData(`${BASE_URL}/products/categories`),
 
-  // Buscar produtos por categoria
+  // Busca produtos por categoria
   getProductsByCategory: (category) =>
-    fetch(`${BASE_URL}/products/category/${category}`).then((res) => {
-      if (!res.ok) throw new Error("Failed to fetch products by category");
-      return res.json();
-    }),
+    fetchData(`${BASE_URL}/products/category/${category}`),
 };
 
-// Buscar usuário
-export const getUser = (id = 1) =>
-  fetch(`https://jsonplaceholder.typicode.com/users/${id}`).then((res) => {
-    if (!res.ok) throw new Error("Failed to fetch user");
-    return res.json();
-  });
+// API para usuários - JSONPlaceholder
+export const getUser = (id = 1) => fetchData(`${USERS_URL}/users/${id}`);
 
-// Buscar múltiplos usuários
+// Busca múltiplos usuários em paralelo
 export const getMultipleUsers = (count = 10) => {
-  const promises = [];
-  for (let i = 1; i <= count; i++) {
-    promises.push(getUser(i));
-  }
-  return Promise.all(promises);
+  const userPromises = Array.from({ length: count }, (_, i) => getUser(i + 1));
+  return Promise.all(userPromises);
 };
