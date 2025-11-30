@@ -1,14 +1,14 @@
 import { useState, useEffect } from "react";
-import { Card, Spin, Image, notification } from "antd";
+import { Image, Spin, notification, Card } from "antd";
 import { EyeFilled } from "@ant-design/icons";
-import { api } from "../../services/api";
-
-const { Meta } = Card;
+import { api } from "../../services/api.js";
+import { useTheme } from "../../contexts/ThemeContext.jsx";
 
 export default function Produtos() {
   const [produtos, setProdutos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const { isDarkMode } = useTheme();
 
   useEffect(() => {
     const fetchProdutos = async () => {
@@ -32,12 +32,20 @@ export default function Produtos() {
     fetchProdutos();
   }, []);
 
-  const abrirNotificacao = () => {
+  const abrirNotificacao = (produto) => {
     notification.error({
       message: "Erro ao visualizar",
-      description: "Não foi possível carregar os detalhes do produto.",
+      description: `Não foi possível carregar os detalhes do produto ${produto.title}.`,
       placement: "topRight",
     });
+  };
+
+  // Função para encurtar o título
+  const encurtarTitulo = (titulo) => {
+    if (titulo.length > 30) {
+      return titulo.substring(0, 30) + "...";
+    }
+    return titulo;
   };
 
   if (loading) {
@@ -45,7 +53,11 @@ export default function Produtos() {
       <div className="flex justify-center items-center py-20">
         <div className="text-center">
           <Spin size="large" />
-          <p className="mt-4 text-gray-600">Carregando produtos...</p>
+          <p
+            className={`mt-4 ${isDarkMode ? "text-gray-300" : "text-gray-600"}`}
+          >
+            Carregando produtos...
+          </p>
         </div>
       </div>
     );
@@ -68,29 +80,57 @@ export default function Produtos() {
   }
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6 w-full max-w-7xl">
+    <div className="flex justify-center gap-6">
       {produtos.map((produto) => (
         <Card
           key={produto.id}
-          hoverable
+          className={`w-64 h-80 ${
+            isDarkMode
+              ? "bg-gray-800 border-gray-700"
+              : "bg-white border-gray-200"
+          } flex flex-col transition-transform hover:scale-105`}
+          bodyStyle={{
+            padding: "20px",
+            flex: 1,
+            display: "flex",
+            flexDirection: "column",
+          }}
           cover={
-            <Image
-              src={produto.image}
-              alt={produto.title}
-              preview={true}
-              className="h-48 object-contain p-4"
-              placeholder={
-                <div className="flex justify-center items-center h-48">
-                  <Spin size="small" />
-                </div>
-              }
-            />
+            <div className="flex justify-center p-6 bg-white">
+              <Image
+                src={produto.image}
+                alt={produto.title}
+                width={120}
+                height={120}
+                style={{ objectFit: "contain" }}
+                preview={{
+                  mask: <EyeFilled onClick={() => abrirNotificacao(produto)} />,
+                }}
+              />
+            </div>
           }
-          actions={[
-            <EyeFilled key={`eye-${produto.id}`} onClick={abrirNotificacao} />,
-          ]}
         >
-          <Meta title={produto.title} description={`$${produto.price}`} />
+          <div className="flex flex-col flex-1 justify-between">
+            <div>
+              <h3
+                className={`font-semibold text-base mb-3 ${
+                  isDarkMode ? "text-white" : "text-gray-900"
+                } line-clamp-3 leading-tight`}
+              >
+                {encurtarTitulo(produto.title)}
+              </h3>
+            </div>
+
+            <div className="mt-auto">
+              <div
+                className={`text-xl font-bold ${
+                  isDarkMode ? "text-white" : "text-gray-900"
+                } text-right`}
+              >
+                ${produto.price}
+              </div>
+            </div>
+          </div>
         </Card>
       ))}
     </div>

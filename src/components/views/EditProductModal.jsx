@@ -1,11 +1,30 @@
+// src/components/views/EditProductModal.jsx
 import { Modal, Form, Input, InputNumber, Select } from "antd";
 import PropTypes from "prop-types";
 
 const { Option } = Select;
 const { TextArea } = Input;
 
-export default function AddProductModal({ visible, onCancel, onAddProduct }) {
+export default function EditProductModal({
+  visible,
+  onCancel,
+  onEditProduct,
+  product,
+}) {
   const [form] = Form.useForm();
+
+  // Preencher form quando produto mudar
+  React.useEffect(() => {
+    if (product && visible) {
+      form.setFieldsValue({
+        title: product.title,
+        description: product.description,
+        category: product.category,
+        price: product.price,
+        image: product.image,
+      });
+    }
+  }, [product, visible, form]);
 
   const handleSubmit = async (values) => {
     try {
@@ -17,21 +36,21 @@ export default function AddProductModal({ visible, onCancel, onAddProduct }) {
         category: values.category,
       };
 
-      await onAddProduct(productData);
+      await onEditProduct(product.id, productData);
       form.resetFields();
     } catch (error) {
-      console.error("Erro ao adicionar produto:", error);
+      console.error("Erro ao editar produto:", error);
       throw error;
     }
   };
 
   return (
     <Modal
-      title="New Product"
+      title="Edit Product"
       open={visible}
       onCancel={onCancel}
       onOk={() => form.submit()}
-      okText="Save"
+      okText="Save Changes"
       cancelText="Cancel"
       okButtonProps={{ className: "bg-blue-600 hover:bg-blue-700 border-0" }}
       maskClosable={false}
@@ -104,8 +123,9 @@ export default function AddProductModal({ visible, onCancel, onAddProduct }) {
   );
 }
 
-AddProductModal.propTypes = {
+EditProductModal.propTypes = {
   visible: PropTypes.bool.isRequired,
   onCancel: PropTypes.func.isRequired,
-  onAddProduct: PropTypes.func.isRequired,
+  onEditProduct: PropTypes.func.isRequired,
+  product: PropTypes.object,
 };
