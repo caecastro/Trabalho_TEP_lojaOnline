@@ -1,42 +1,23 @@
 import { useState, useEffect } from "react";
 import { Image, Spin, notification, Card } from "antd";
 import { EyeFilled } from "@ant-design/icons";
-import { api } from "../../services/api.js";
+import { useProducts } from "../../hooks/useProducts.js";
 import { useTheme } from "../../contexts/ThemeContext.jsx";
 
 export default function Produtos() {
-  const [produtos, setProdutos] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const { apiProducts, loading, loadApiProducts } = useProducts();
   const { isDarkMode } = useTheme();
 
   useEffect(() => {
-    const fetchProdutos = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-        const data = await api.getProducts(5);
-        setProdutos(data);
-      } catch (error) {
-        console.error("Erro ao buscar produtos:", error);
-        setError("Falha ao carregar produtos");
-        notification.error({
-          message: "Erro ao carregar produtos",
-          description: "Não foi possível carregar os produtos da API.",
-        });
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchProdutos();
+    loadApiProducts(5); // Carregar apenas 5 produtos para a homepage
   }, []);
 
   const abrirNotificacao = (produto) => {
     notification.error({
-      message: "Erro ao visualizar",
-      description: `Não foi possível carregar os detalhes do produto ${produto.title}.`,
+      message: "Erro ao visualizar produto",
+      description: `Não foi possível carregar os detalhes de "${produto.title}".`,
       placement: "topRight",
+      duration: 3,
     });
   };
 
@@ -47,6 +28,10 @@ export default function Produtos() {
     }
     return titulo;
   };
+
+  // Fallback image para erro de carregamento
+  const fallbackImage =
+    "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120' viewBox='0 0 120 120'%3E%3Crect width='120' height='120' fill='%23f5f5f5'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-family='Arial' font-size='12' fill='%23999'%3EImagem Indisponível%3C/text%3E%3C/svg%3E";
 
   if (loading) {
     return (
@@ -63,25 +48,9 @@ export default function Produtos() {
     );
   }
 
-  if (error) {
-    return (
-      <div className="flex justify-center items-center py-20">
-        <div className="text-center text-red-500">
-          <p>{error}</p>
-          <button
-            onClick={() => window.location.reload()}
-            className="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-          >
-            Tentar Novamente
-          </button>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="flex justify-center gap-6 flex-wrap">
-      {produtos.map((produto) => (
+      {apiProducts.map((produto) => (
         <Card
           key={produto.id}
           className={`w-64 h-80 ${
@@ -105,21 +74,25 @@ export default function Produtos() {
                 width={120}
                 height={120}
                 style={{ objectFit: "contain" }}
+                fallback={fallbackImage}
                 preview={{
-                  // CORREÇÃO: usar toolbarRender em vez de mask
-                  toolbarRender: () => (
-                    <div className="ant-image-preview-operations">
+                  mask: (
+                    <div className="flex items-center justify-center w-full h-full bg-black bg-opacity-40">
                       <EyeFilled
-                        onClick={() => abrirNotificacao(produto)}
                         style={{
+                          fontSize: "24px",
                           color: "#fff",
-                          fontSize: "16px",
                           cursor: "pointer",
-                          padding: "8px",
                         }}
                       />
                     </div>
                   ),
+                  onVisibleChange: (visible) => {
+                    if (visible) {
+                      abrirNotificacao(produto);
+                      return false; // Impede a abertura do preview
+                    }
+                  },
                 }}
               />
             </div>

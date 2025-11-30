@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
-import { getUser } from "../services/api"; // ← CORRETO!
+import { getUser } from "../services/api";
 
-// ... resto do código permanece igual
 export const useUser = () => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);

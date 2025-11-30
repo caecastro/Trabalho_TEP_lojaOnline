@@ -18,11 +18,15 @@ export const useProducts = () => {
     error,
   } = useSelector((state) => state.products);
 
-  const loadApiProducts = async (limit = 9) => {
+  const [apiProducts, setApiProducts] = useState([]);
+
+  // Carregar produtos da API
+  const loadApiProducts = async (limit = 5) => {
     try {
       dispatch(setLoading(true));
       const data = await api.getProducts(limit);
-      dispatch(setProducts(data));
+      setApiProducts(data);
+      return data;
     } catch (err) {
       dispatch(setError(err.message));
       throw err;
@@ -31,25 +35,18 @@ export const useProducts = () => {
     }
   };
 
+  // Adicionar produto local
   const addProductToStore = async (productData) => {
     try {
-      const novoProduto = {
-        id: `local-${Date.now()}`,
-        ...productData,
-        rating: {
-          rate: 4,
-          count: Math.floor(Math.random() * 500) + 100,
-        },
-      };
-
-      dispatch(addProduct(novoProduto));
-      return novoProduto;
+      dispatch(addProduct(productData));
+      return productData;
     } catch (err) {
       console.error("Erro ao salvar produto:", err);
       throw new Error("Falha ao salvar produto");
     }
   };
 
+  // Editar produto
   const editProductInStore = async (productId, productData) => {
     try {
       dispatch(updateProduct({ id: productId, data: productData }));
@@ -60,6 +57,7 @@ export const useProducts = () => {
     }
   };
 
+  // Excluir produto
   const deleteProductFromStore = async (productId) => {
     try {
       dispatch(removeProduct(productId));
@@ -70,12 +68,13 @@ export const useProducts = () => {
     }
   };
 
-  useEffect(() => {
-    loadApiProducts();
-  }, []);
+  // Combinar produtos da API com produtos locais
+  const allProducts = [...apiProducts, ...products.filter((p) => p.isLocal)];
 
   return {
-    products,
+    products: allProducts,
+    apiProducts,
+    localProducts: products.filter((p) => p.isLocal),
     loading,
     error,
     loadApiProducts,

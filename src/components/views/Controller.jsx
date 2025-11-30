@@ -1,7 +1,17 @@
 import { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext.jsx";
-import { Button, Switch, Badge, Space } from "antd";
+import {
+  Button,
+  Switch,
+  Badge,
+  Space,
+  Dropdown,
+  Grid,
+  Avatar,
+  Typography,
+  message,
+} from "antd";
 import { useTheme } from "../../contexts/ThemeContext.jsx";
 import { useCart } from "../../hooks/useCart.js";
 import {
@@ -11,8 +21,14 @@ import {
   HomeOutlined,
   ShoppingOutlined,
   UserOutlined,
+  MenuOutlined,
+  LogoutOutlined,
+  UserSwitchOutlined,
 } from "@ant-design/icons";
 import CartDrawer from "./CartDrawer.jsx";
+
+const { useBreakpoint } = Grid;
+const { Text } = Typography;
 
 export default function Controller() {
   const navigate = useNavigate();
@@ -21,21 +37,150 @@ export default function Controller() {
   const { isDarkMode, toggleTheme } = useTheme();
   const { getTotalItems } = useCart();
   const [cartVisible, setCartVisible] = useState(false);
+  const screens = useBreakpoint();
 
   const handleLogout = () => {
     logout();
+    message.success("Logout realizado com sucesso!");
     navigate("/");
   };
 
   const getNavButtonStyle = (path) => {
     const isActive = location.pathname === path;
-    return `flex items-center gap-2 px-3 py-2 rounded-md transition ${
+    return `flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-1 sm:py-2 rounded-md transition text-sm sm:text-base ${
       isActive
         ? "bg-blue-600 text-white"
         : isDarkMode
         ? "text-gray-300 hover:bg-gray-700"
         : "text-gray-700 hover:bg-gray-200"
     }`;
+  };
+
+  // Menu mobile principal
+  const mobileMenuItems = [
+    {
+      key: "1",
+      icon: <HomeOutlined />,
+      label: "Home",
+      onClick: () => navigate("/"),
+    },
+    {
+      key: "2",
+      icon: <ShoppingOutlined />,
+      label: "Products",
+      onClick: () => navigate("/products"),
+    },
+    {
+      key: "3",
+      icon: <UserOutlined />,
+      label: "Clients",
+      onClick: () => navigate("/clients"),
+    },
+    {
+      type: "divider",
+    },
+    {
+      key: "4",
+      icon: isDarkMode ? <BulbFilled /> : <BulbOutlined />,
+      label: isDarkMode ? "Light Mode" : "Dark Mode",
+      onClick: toggleTheme,
+    },
+    {
+      key: "5",
+      icon: <ShoppingCartOutlined />,
+      label: `Cart (${getTotalItems()})`,
+      onClick: () => setCartVisible(true),
+    },
+    ...(user
+      ? [
+          {
+            type: "divider",
+          },
+          {
+            key: "6",
+            icon: <LogoutOutlined />,
+            label: "Logout",
+            onClick: handleLogout,
+            danger: true,
+          },
+        ]
+      : [
+          {
+            type: "divider",
+          },
+          {
+            key: "6",
+            icon: <UserSwitchOutlined />,
+            label: "Login",
+            onClick: () => navigate("/products"),
+          },
+        ]),
+  ];
+
+  // Menu do usuário para mobile/tablet
+  const userMenuItems = user
+    ? [
+        {
+          key: "user-info",
+          label: (
+            <div className="px-2 py-1 border-b border-gray-200 dark:border-gray-700">
+              <Text strong className="text-xs sm:text-sm block">
+                {user.name || "User"}
+              </Text>
+              <Text type="secondary" className="block text-xs">
+                {user.email || "user@example.com"}
+              </Text>
+            </div>
+          ),
+          disabled: true,
+        },
+        {
+          type: "divider",
+        },
+        {
+          key: "profile",
+          icon: <UserOutlined />,
+          label: "Profile",
+          onClick: () => message.info("Profile feature coming soon!"),
+        },
+        {
+          key: "logout",
+          icon: <LogoutOutlined />,
+          label: "Logout",
+          onClick: handleLogout,
+          danger: true,
+        },
+      ]
+    : [
+        {
+          key: "login",
+          icon: <UserSwitchOutlined />,
+          label: "Login",
+          onClick: () => navigate("/products"),
+        },
+      ];
+
+  // Nome abreviado para mobile
+  const getAbbreviatedName = (name) => {
+    if (!name) return "User";
+    if (screens.xs) {
+      return name
+        .split(" ")
+        .map((word) => word[0])
+        .join("")
+        .toUpperCase();
+    }
+    if (screens.sm) {
+      const names = name.split(" ");
+      return names.length > 1 ? `${names[0]} ${names[1][0]}.` : names[0];
+    }
+    return name;
+  };
+
+  // Avatar do usuário
+  const getUserAvatar = () => {
+    if (!user) return "U";
+    return user.name?.charAt(0).toUpperCase() || "U";
   };
 
   return (
@@ -45,114 +190,317 @@ export default function Controller() {
           isDarkMode
             ? "bg-gray-800 border-gray-700"
             : "bg-white border-gray-200"
-        }`}
+        } sticky top-0 z-50`}
       >
-        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row justify-between items-center py-4 px-6 gap-4">
-          {/* Logo e Navegação */}
-          <div className="flex items-center gap-6 w-full sm:w-auto justify-between sm:justify-start">
+        <div
+          className={`max-w-7xl mx-auto ${
+            screens.xs ? "px-2 py-2" : "px-3 sm:px-4 lg:px-6 py-3 sm:py-4"
+          }`}
+        >
+          <div className="flex items-center justify-between gap-2 sm:gap-4">
+            {/* Logo */}
             <div
-              className="flex items-center gap-2 cursor-pointer"
+              className="flex items-center gap-1 sm:gap-2 cursor-pointer flex-shrink-0"
               onClick={() => navigate("/")}
             >
               <img
                 src="https://cdn-icons-png.flaticon.com/512/3081/3081559.png"
                 alt="Logo"
-                className="w-8 h-8"
+                className={`${
+                  screens.xs ? "w-6 h-6" : "w-7 h-7 sm:w-8 sm:h-8"
+                }`}
               />
               <span
-                className={`text-xl font-semibold ${
-                  isDarkMode ? "text-white" : "text-gray-900"
-                }`}
+                className={`font-semibold ${
+                  screens.xs ? "text-lg" : "text-xl sm:text-2xl"
+                } ${isDarkMode ? "text-white" : "text-gray-900"}`}
               >
-                Online Shop
+                {screens.xs ? "Shop" : "Online Shop"}
               </span>
             </div>
 
-            {/* Menu Mobile */}
-            <div className="flex items-center gap-2 sm:hidden">
+            {/* Navegação Principal - Desktop */}
+            <div className="hidden md:flex items-center gap-1 lg:gap-2 flex-1 justify-center">
+              <Button
+                type="text"
+                icon={<HomeOutlined />}
+                className={getNavButtonStyle("/")}
+                onClick={() => navigate("/")}
+              >
+                Home
+              </Button>
+              <Button
+                type="text"
+                icon={<ShoppingOutlined />}
+                className={getNavButtonStyle("/products")}
+                onClick={() => navigate("/products")}
+              >
+                Products
+              </Button>
+              <Button
+                type="text"
+                icon={<UserOutlined />}
+                className={getNavButtonStyle("/clients")}
+                onClick={() => navigate("/clients")}
+              >
+                Clients
+              </Button>
+            </div>
+
+            {/* Navegação Principal - Tablet */}
+            <div className="hidden sm:flex md:hidden items-center gap-1 flex-1 justify-center">
+              <Button
+                type="text"
+                icon={<HomeOutlined />}
+                className={getNavButtonStyle("/")}
+                onClick={() => navigate("/")}
+              />
+              <Button
+                type="text"
+                icon={<ShoppingOutlined />}
+                className={getNavButtonStyle("/products")}
+                onClick={() => navigate("/products")}
+              />
+              <Button
+                type="text"
+                icon={<UserOutlined />}
+                className={getNavButtonStyle("/clients")}
+                onClick={() => navigate("/clients")}
+              />
+            </div>
+
+            {/* Controles Direita */}
+            <div className="flex items-center gap-1 sm:gap-2 lg:gap-3 flex-shrink-0">
+              {/* Toggle Theme - Sempre visível */}
               <Switch
                 checked={isDarkMode}
                 onChange={toggleTheme}
                 checkedChildren={<BulbFilled className="text-yellow-400" />}
                 unCheckedChildren={<BulbOutlined />}
-                size="small"
+                size={screens.xs ? "small" : "default"}
+                title={
+                  isDarkMode ? "Switch to Light Mode" : "Switch to Dark Mode"
+                }
               />
-              <Badge count={getTotalItems()} size="small">
+
+              {/* Carrinho - Sempre visível */}
+              <Badge
+                count={getTotalItems()}
+                size="small"
+                offset={screens.xs ? [-2, 2] : [-5, 5]}
+                showZero={false}
+              >
                 <Button
                   type="text"
                   icon={<ShoppingCartOutlined />}
                   onClick={() => setCartVisible(true)}
-                  className={isDarkMode ? "text-white" : ""}
-                />
+                  className={
+                    isDarkMode
+                      ? "text-white hover:text-gray-300"
+                      : "text-gray-700 hover:text-gray-900"
+                  }
+                  size={screens.xs ? "small" : "middle"}
+                  title="Shopping Cart"
+                >
+                  {screens.lg && "Cart"}
+                </Button>
               </Badge>
-            </div>
-          </div>
 
-          {/* Navegação Principal */}
-          <div className="flex items-center gap-2 w-full sm:w-auto justify-center">
-            <Button
-              type="text"
-              icon={<HomeOutlined />}
-              className={getNavButtonStyle("/")}
-              onClick={() => navigate("/")}
-            >
-              Home
-            </Button>
-            <Button
-              type="text"
-              icon={<ShoppingOutlined />}
-              className={getNavButtonStyle("/products")}
-              onClick={() => navigate("/products")}
-            >
-              Products
-            </Button>
-            <Button
-              type="text"
-              icon={<UserOutlined />}
-              className={getNavButtonStyle("/clients")}
-              onClick={() => navigate("/clients")}
-            >
-              Clients
-            </Button>
-          </div>
-
-          {/* Controles Direita */}
-          <div className="flex items-center gap-4 w-full sm:w-auto justify-end">
-            <div className="hidden sm:flex items-center gap-4">
-              <Switch
-                checked={isDarkMode}
-                onChange={toggleTheme}
-                checkedChildren={<BulbFilled className="text-yellow-400" />}
-                unCheckedChildren={<BulbOutlined />}
-              />
-
-              {user ? (
-                <Space>
-                  <span
-                    className={isDarkMode ? "text-gray-300" : "text-gray-700"}
+              {/* Informações do Usuário - Desktop */}
+              {screens.lg && user && (
+                <Space size="small">
+                  <Avatar
+                    size="default"
+                    style={{
+                      backgroundColor: "#1890ff",
+                      fontSize: "14px",
+                      cursor: "pointer",
+                    }}
                   >
-                    Welcome, {user.name}
-                  </span>
-                  <Button type="text" onClick={handleLogout}>
+                    {getUserAvatar()}
+                  </Avatar>
+                  <div>
+                    <Text
+                      strong
+                      className={`block text-sm ${
+                        isDarkMode ? "text-gray-300" : "text-gray-700"
+                      }`}
+                    >
+                      {getAbbreviatedName(user.name)}
+                    </Text>
+                  </div>
+                  <Button
+                    type="text"
+                    onClick={handleLogout}
+                    size="middle"
+                    className="text-gray-500 hover:text-gray-700"
+                  >
                     Logout
                   </Button>
                 </Space>
-              ) : (
-                <Button type="text">Login</Button>
               )}
 
-              <Badge count={getTotalItems()} size="small">
+              {/* Informações do Usuário - Tablet */}
+              {screens.sm && !screens.lg && user && (
+                <Space size="small">
+                  <Avatar
+                    size="small"
+                    style={{
+                      backgroundColor: "#1890ff",
+                      fontSize: "12px",
+                    }}
+                  >
+                    {getUserAvatar()}
+                  </Avatar>
+                  <Button
+                    type="text"
+                    icon={<LogoutOutlined />}
+                    onClick={handleLogout}
+                    size="small"
+                    title="Logout"
+                  />
+                </Space>
+              )}
+
+              {/* Usuário não logado - Desktop/Tablet */}
+              {screens.sm && !user && (
                 <Button
                   type="text"
-                  icon={<ShoppingCartOutlined />}
-                  onClick={() => setCartVisible(true)}
-                  className={isDarkMode ? "text-white" : ""}
+                  size={screens.sm ? "small" : "middle"}
+                  onClick={() => navigate("/products")}
                 >
-                  Cart
+                  {screens.lg ? "Login" : <UserSwitchOutlined />}
                 </Button>
-              </Badge>
+              )}
+
+              {/* Menu Mobile Principal */}
+              <div className="sm:hidden">
+                <Dropdown
+                  menu={{ items: mobileMenuItems }}
+                  placement="bottomRight"
+                  trigger={["click"]}
+                  overlayStyle={{ minWidth: 200 }}
+                  arrow
+                >
+                  <Button
+                    type="text"
+                    icon={<MenuOutlined />}
+                    className={
+                      isDarkMode
+                        ? "text-white hover:text-gray-300"
+                        : "text-gray-700 hover:text-gray-900"
+                    }
+                    size="small"
+                  />
+                </Dropdown>
+              </div>
+
+              {/* Menu do Usuário para Tablet */}
+              {screens.sm && !screens.lg && (
+                <div className="md:hidden">
+                  <Dropdown
+                    menu={{ items: userMenuItems }}
+                    placement="bottomRight"
+                    trigger={["click"]}
+                    arrow
+                  >
+                    <Button
+                      type="text"
+                      size="small"
+                      icon={!user ? <UserSwitchOutlined /> : null}
+                    >
+                      {user && (
+                        <Avatar
+                          size="small"
+                          style={{
+                            backgroundColor: "#1890ff",
+                            marginRight: user ? 0 : undefined,
+                          }}
+                        >
+                          {getUserAvatar()}
+                        </Avatar>
+                      )}
+                    </Button>
+                  </Dropdown>
+                </div>
+              )}
+
+              {/* Menu do Usuário para Desktop (apenas quando não está expandido) */}
+              {screens.lg && user && (
+                <div className="lg:hidden xl:block">
+                  <Dropdown
+                    menu={{ items: userMenuItems }}
+                    placement="bottomRight"
+                    trigger={["click"]}
+                    arrow
+                  >
+                    <Button type="text" size="middle">
+                      <Avatar
+                        size="small"
+                        style={{
+                          backgroundColor: "#1890ff",
+                          marginRight: "8px",
+                        }}
+                      >
+                        {getUserAvatar()}
+                      </Avatar>
+                      <span className="text-sm">Menu</span>
+                    </Button>
+                  </Dropdown>
+                </div>
+              )}
             </div>
           </div>
+
+          {/* Navegação Secundária - Tablet (texto abaixo) */}
+          {screens.sm && !screens.md && (
+            <div className="flex justify-center mt-2">
+              <Space size="middle">
+                <Button
+                  type="text"
+                  size="small"
+                  className={`text-xs ${
+                    location.pathname === "/"
+                      ? "text-blue-600 font-semibold"
+                      : isDarkMode
+                      ? "text-gray-400 hover:text-gray-300"
+                      : "text-gray-600 hover:text-gray-800"
+                  }`}
+                  onClick={() => navigate("/")}
+                >
+                  Home
+                </Button>
+                <Button
+                  type="text"
+                  size="small"
+                  className={`text-xs ${
+                    location.pathname === "/products"
+                      ? "text-blue-600 font-semibold"
+                      : isDarkMode
+                      ? "text-gray-400 hover:text-gray-300"
+                      : "text-gray-600 hover:text-gray-800"
+                  }`}
+                  onClick={() => navigate("/products")}
+                >
+                  Products
+                </Button>
+                <Button
+                  type="text"
+                  size="small"
+                  className={`text-xs ${
+                    location.pathname === "/clients"
+                      ? "text-blue-600 font-semibold"
+                      : isDarkMode
+                      ? "text-gray-400 hover:text-gray-300"
+                      : "text-gray-600 hover:text-gray-800"
+                  }`}
+                  onClick={() => navigate("/clients")}
+                >
+                  Clients
+                </Button>
+              </Space>
+            </div>
+          )}
         </div>
       </header>
 

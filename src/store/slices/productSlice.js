@@ -14,7 +14,16 @@ const productsSlice = createSlice({
       state.list = action.payload;
     },
     addProduct: (state, action) => {
-      state.list.push(action.payload);
+      const newProduct = {
+        ...action.payload,
+        id: `local-${Date.now()}`,
+        rating: {
+          rate: 4,
+          count: Math.floor(Math.random() * 500) + 100,
+        },
+        isLocal: true, // Marcar produtos locais
+      };
+      state.list.push(newProduct);
     },
     updateProduct: (state, action) => {
       const { id, data } = action.payload;

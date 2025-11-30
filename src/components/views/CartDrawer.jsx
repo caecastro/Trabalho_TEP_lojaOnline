@@ -10,6 +10,7 @@ import {
   Divider,
   Badge,
   Empty,
+  Flex,
 } from "antd";
 import { DeleteOutlined, ShoppingCartOutlined } from "@ant-design/icons";
 import { useCart } from "../../hooks/useCart.js";
@@ -31,7 +32,6 @@ export default function CartDrawer({ visible, onClose }) {
       return;
     }
 
-    // Criar objeto de pedido
     const order = {
       id: `order-${Date.now()}`,
       items: [...items],
@@ -40,7 +40,6 @@ export default function CartDrawer({ visible, onClose }) {
       status: "completed",
     };
 
-    // Salvar pedido no localStorage
     const existingOrders = JSON.parse(localStorage.getItem("orders") || "[]");
     localStorage.setItem("orders", JSON.stringify([...existingOrders, order]));
 
@@ -175,7 +174,7 @@ export default function CartDrawer({ visible, onClose }) {
                         style={{ width: "100%" }}
                       >
                         <Text strong>${item.price.toFixed(2)}</Text>
-                        <Space>
+                        <Flex align="center" gap="small">
                           <Text type="secondary">Qtd:</Text>
                           <InputNumber
                             min={1}
@@ -187,7 +186,7 @@ export default function CartDrawer({ visible, onClose }) {
                             size="small"
                             style={{ width: 60 }}
                           />
-                        </Space>
+                        </Flex>
                         <Text type="secondary">
                           Subtotal: ${(item.price * item.quantity).toFixed(2)}
                         </Text>
