@@ -1,4 +1,4 @@
-// src/components/views/EditProductModal.jsx
+import React, { useEffect } from "react";
 import { Modal, Form, Input, InputNumber, Select } from "antd";
 import PropTypes from "prop-types";
 
@@ -14,7 +14,7 @@ export default function EditProductModal({
   const [form] = Form.useForm();
 
   // Preencher form quando produto mudar
-  React.useEffect(() => {
+  useEffect(() => {
     if (product && visible) {
       form.setFieldsValue({
         title: product.title,
@@ -44,11 +44,16 @@ export default function EditProductModal({
     }
   };
 
+  const handleCancel = () => {
+    form.resetFields();
+    onCancel();
+  };
+
   return (
     <Modal
       title="Edit Product"
       open={visible}
-      onCancel={onCancel}
+      onCancel={handleCancel}
       onOk={() => form.submit()}
       okText="Save Changes"
       cancelText="Cancel"
@@ -56,7 +61,9 @@ export default function EditProductModal({
       maskClosable={false}
       keyboard={false}
       width={600}
+      afterClose={() => form.resetFields()} // CORREÇÃO: resetar após fechar
     >
+      {/* CORREÇÃO: Form conectado ao Modal */}
       <Form
         form={form}
         layout="vertical"

@@ -1,9 +1,12 @@
-// src/store/index.js
 import { configureStore } from "@reduxjs/toolkit";
-import clientsReducer from "./slices/clientSlice.js"; // ✅ corrigido para singular
+import productReducer from "./slices/productSlice.js";
+import clientReducer from "./slices/clientSlice.js";
+import cartReducer from "./slices/cartSlice.js";
 
 export const store = configureStore({
   reducer: {
-    clients: clientsReducer,
+    products: productReducer,
+    clients: clientReducer,
+    cart: cartReducer,
   },
 });

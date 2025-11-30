@@ -1,27 +1,41 @@
-// src/components/views/Controller.jsx
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { useAuth } from "../../contexts/AuthContext.jsx"; // ✅ corrigido
-import { Button, Switch, Badge } from "antd";
-import { useTheme } from "../../contexts/ThemeContext.jsx"; // ✅ corrigido
-import { useCart } from "../../contexts/CartContext.jsx"; // já estava certo
+import { useNavigate, useLocation } from "react-router-dom";
+import { useAuth } from "../../contexts/AuthContext.jsx";
+import { Button, Switch, Badge, Space } from "antd";
+import { useTheme } from "../../contexts/ThemeContext.jsx";
+import { useCart } from "../../hooks/useCart.js";
 import {
   BulbOutlined,
   BulbFilled,
   ShoppingCartOutlined,
+  HomeOutlined,
+  ShoppingOutlined,
+  UserOutlined,
 } from "@ant-design/icons";
-import CartDrawer from "./CartDrawer.jsx"; // NOVO
+import CartDrawer from "./CartDrawer.jsx";
 
 export default function Controller() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { user, logout } = useAuth();
   const { isDarkMode, toggleTheme } = useTheme();
-  const { getTotalItems } = useCart(); // NOVO
-  const [cartVisible, setCartVisible] = useState(false); // NOVO
+  const { getTotalItems } = useCart();
+  const [cartVisible, setCartVisible] = useState(false);
 
   const handleLogout = () => {
     logout();
     navigate("/");
+  };
+
+  const getNavButtonStyle = (path) => {
+    const isActive = location.pathname === path;
+    return `flex items-center gap-2 px-3 py-2 rounded-md transition ${
+      isActive
+        ? "bg-blue-600 text-white"
+        : isDarkMode
+        ? "text-gray-300 hover:bg-gray-700"
+        : "text-gray-700 hover:bg-gray-200"
+    }`;
   };
 
   return (
@@ -30,11 +44,12 @@ export default function Controller() {
         className={`w-full border-b ${
           isDarkMode
             ? "bg-gray-800 border-gray-700"
-            : "bg-blue-100 border-gray-300"
+            : "bg-white border-gray-200"
         }`}
       >
-        <div className="max-w-7xl mx-auto flex flex-wrap justify-between items-center py-4 px-6">
-          <div className="flex items-center gap-6">
+        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row justify-between items-center py-4 px-6 gap-4">
+          {/* Logo e Navegação */}
+          <div className="flex items-center gap-6 w-full sm:w-auto justify-between sm:justify-start">
             <div
               className="flex items-center gap-2 cursor-pointer"
               onClick={() => navigate("/")}
@@ -46,109 +61,101 @@ export default function Controller() {
               />
               <span
                 className={`text-xl font-semibold ${
-                  isDarkMode ? "text-white" : "text-blue-900"
+                  isDarkMode ? "text-white" : "text-gray-900"
                 }`}
               >
                 Online Shop
               </span>
             </div>
 
-            <div className="flex items-center gap-4">
-              <button
-                onClick={() => navigate("/")}
-                className={`hover:text-blue-700 transition ${
-                  isDarkMode ? "text-gray-300" : "text-gray-900"
-                }`}
-              >
-                Home
-              </button>
-              <button
-                onClick={() => navigate("/products")}
-                className={`hover:text-blue-700 transition ${
-                  isDarkMode ? "text-gray-300" : "text-gray-900"
-                }`}
-              >
-                Products
-              </button>
-              <button
-                onClick={() => navigate("/clients")}
-                className={`hover:text-blue-700 transition ${
-                  isDarkMode ? "text-gray-300" : "text-gray-900"
-                }`}
-              >
-                Clients
-              </button>
+            {/* Menu Mobile */}
+            <div className="flex items-center gap-2 sm:hidden">
+              <Switch
+                checked={isDarkMode}
+                onChange={toggleTheme}
+                checkedChildren={<BulbFilled className="text-yellow-400" />}
+                unCheckedChildren={<BulbOutlined />}
+                size="small"
+              />
+              <Badge count={getTotalItems()} size="small">
+                <Button
+                  type="text"
+                  icon={<ShoppingCartOutlined />}
+                  onClick={() => setCartVisible(true)}
+                  className={isDarkMode ? "text-white" : ""}
+                />
+              </Badge>
             </div>
           </div>
 
-          <div className="flex items-center w-full md:w-1/3 mb-2 md:mb-0">
-            <input
+          {/* Navegação Principal */}
+          <div className="flex items-center gap-2 w-full sm:w-auto justify-center">
+            <Button
               type="text"
-              placeholder="Pesquisar"
-              className={`w-full px-3 py-2 border rounded-md focus:outline-none ${
-                isDarkMode
-                  ? "bg-gray-700 border-gray-600 text-white placeholder-gray-400"
-                  : "border-gray-300"
-              }`}
-            />
+              icon={<HomeOutlined />}
+              className={getNavButtonStyle("/")}
+              onClick={() => navigate("/")}
+            >
+              Home
+            </Button>
+            <Button
+              type="text"
+              icon={<ShoppingOutlined />}
+              className={getNavButtonStyle("/products")}
+              onClick={() => navigate("/products")}
+            >
+              Products
+            </Button>
+            <Button
+              type="text"
+              icon={<UserOutlined />}
+              className={getNavButtonStyle("/clients")}
+              onClick={() => navigate("/clients")}
+            >
+              Clients
+            </Button>
           </div>
 
-          <div className="flex items-center gap-4">
-            <Switch
-              checked={isDarkMode}
-              onChange={toggleTheme}
-              checkedChildren={<BulbFilled className="text-yellow-400" />}
-              unCheckedChildren={<BulbOutlined />}
-              className={isDarkMode ? "bg-gray-600" : ""}
-            />
+          {/* Controles Direita */}
+          <div className="flex items-center gap-4 w-full sm:w-auto justify-end">
+            <div className="hidden sm:flex items-center gap-4">
+              <Switch
+                checked={isDarkMode}
+                onChange={toggleTheme}
+                checkedChildren={<BulbFilled className="text-yellow-400" />}
+                unCheckedChildren={<BulbOutlined />}
+              />
 
-            {user ? (
-              <>
-                <span
-                  className={isDarkMode ? "text-gray-300" : "text-gray-900"}
-                >
-                  Welcome, {user.name}
-                </span>
+              {user ? (
+                <Space>
+                  <span
+                    className={isDarkMode ? "text-gray-300" : "text-gray-700"}
+                  >
+                    Welcome, {user.name}
+                  </span>
+                  <Button type="text" onClick={handleLogout}>
+                    Logout
+                  </Button>
+                </Space>
+              ) : (
+                <Button type="text">Login</Button>
+              )}
+
+              <Badge count={getTotalItems()} size="small">
                 <Button
-                  onClick={handleLogout}
-                  className={`hover:text-blue-700 transition ${
-                    isDarkMode ? "text-gray-300" : "text-gray-900"
-                  }`}
+                  type="text"
+                  icon={<ShoppingCartOutlined />}
+                  onClick={() => setCartVisible(true)}
+                  className={isDarkMode ? "text-white" : ""}
                 >
-                  Logout
+                  Cart
                 </Button>
-              </>
-            ) : (
-              <button
-                className={`hover:text-blue-700 transition ${
-                  isDarkMode ? "text-gray-300" : "text-gray-900"
-                }`}
-              >
-                Login
-              </button>
-            )}
-
-            {/* NOVO: Botão do Carrinho */}
-            <button
-              className={`flex items-center gap-2 hover:text-blue-700 transition ${
-                isDarkMode ? "text-gray-300" : "text-gray-900"
-              }`}
-              onClick={() => setCartVisible(true)}
-            >
-              <Badge
-                count={getTotalItems()}
-                size="small"
-                style={{ backgroundColor: "#1890ff" }}
-              >
-                <ShoppingCartOutlined style={{ fontSize: "18px" }} />
               </Badge>
-              <span>Cart</span>
-            </button>
+            </div>
           </div>
         </div>
       </header>
 
-      {/* NOVO: Drawer do Carrinho */}
       <CartDrawer visible={cartVisible} onClose={() => setCartVisible(false)} />
     </>
   );

@@ -8,12 +8,12 @@ export default function App() {
   return (
     <div
       className={`min-h-screen flex flex-col ${
-        isDarkMode ? "bg-gray-900" : "bg-white"
+        isDarkMode ? "bg-gray-900 text-white" : "bg-white text-gray-900"
       }`}
     >
       <Controller />
 
-      <main className="flex flex-col items-center py-10 px-4">
+      <main className="flex flex-col items-center py-10 px-4 flex-1">
         <h1
           className={`text-3xl font-semibold mb-2 text-center ${
             isDarkMode ? "text-white" : "text-gray-900"

@@ -1,4 +1,3 @@
-// src/pages/Products.jsx
 import { useState, useMemo } from "react";
 import {
   Typography,
@@ -10,15 +9,15 @@ import {
   Flex,
   Row,
   Col,
-  Popconfirm,
 } from "antd";
-import { useAuth } from "../contexts/AuthContext.jsx"; // ✅ corrigido
+import { useAuth } from "../contexts/AuthContext.jsx";
 import { useProducts } from "../hooks/useProducts.js";
+import { useCart } from "../hooks/useCart.js";
 import Controller from "../components/views/Controller.jsx";
-import ProductCard from "../components/assets/ProductCard.jsx";
+import ProductGridItem from "../components/assets/ProductGridItem.jsx";
 import AddProductModal from "../components/views/AddProductModal.jsx";
-import EditProductModal from "../components/views/EditProductModal.jsx"; // NOVO
-import { useTheme } from "../contexts/ThemeContext.jsx"; // ✅ corrigido
+import EditProductModal from "../components/views/EditProductModal.jsx";
+import { useTheme } from "../contexts/ThemeContext.jsx";
 
 const { Title, Text } = Typography;
 const { Search } = Input;
@@ -32,6 +31,7 @@ export default function Products() {
   const { user } = useAuth();
   const { products, loading, addProduct, editProduct, deleteProduct } =
     useProducts();
+  const { addItem } = useCart();
   const { isDarkMode } = useTheme();
 
   const filteredProducts = useMemo(() => {
@@ -78,18 +78,11 @@ export default function Products() {
 
   const handleDeleteProduct = async (product) => {
     try {
-      if (product.id.startsWith("local-")) {
-        await deleteProduct(product.id);
-        notification.success({
-          message: "Produto excluído com sucesso!",
-          description: "O produto foi removido com sucesso.",
-        });
-      } else {
-        notification.warning({
-          message: "Não é possível excluir",
-          description: "Só é possível excluir produtos cadastrados localmente.",
-        });
-      }
+      await deleteProduct(product.id);
+      notification.success({
+        message: "Produto excluído com sucesso!",
+        description: "O produto foi removido com sucesso.",
+      });
     } catch (error) {
       console.error("Erro ao excluir produto:", error);
       notification.error({
@@ -100,18 +93,12 @@ export default function Products() {
   };
 
   const openEditModal = (product) => {
-    if (product.id.startsWith("local-")) {
-      setEditingProduct(product);
-      setEditModalVisible(true);
-    } else {
-      notification.warning({
-        message: "Não é possível editar",
-        description: "Só é possível editar produtos cadastrados localmente.",
-      });
-    }
+    setEditingProduct(product);
+    setEditModalVisible(true);
   };
 
   const handleBuy = (product) => {
+    addItem(product);
     notification.success({
       message: "Produto adicionado ao carrinho",
       description: `${product.title} foi adicionado ao carrinho.`,
@@ -207,15 +194,16 @@ export default function Products() {
           />
         </div>
 
+        {/* Grid 3x3 usando ProductGridItem */}
         <Row gutter={[24, 24]}>
           {filteredProducts.map((product) => (
-            <Col xs={24} sm={12} md={8} key={product.id}>
-              <ProductCard
+            <Col xs={24} sm={12} md={8} lg={8} key={product.id}>
+              <ProductGridItem
                 product={product}
                 onBuy={handleBuy}
                 onEdit={openEditModal}
                 onDelete={handleDeleteProduct}
-                showActions={user && product.id.startsWith("local-")}
+                showActions={!!user} // Mostrar ações para qualquer produto se usuário logado
               />
             </Col>
           ))}

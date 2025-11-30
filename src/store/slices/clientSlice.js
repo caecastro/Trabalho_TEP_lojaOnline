@@ -1,8 +1,30 @@
-// src/store/slices/clientsSlice.js
 import { createSlice } from "@reduxjs/toolkit";
 
+// Função para gerar data aleatória nos últimos 5 anos
+const generateRandomDate = () => {
+  const currentDate = new Date();
+  const fiveYearsAgo = new Date();
+  fiveYearsAgo.setFullYear(currentDate.getFullYear() - 5);
+
+  const randomTime =
+    fiveYearsAgo.getTime() +
+    Math.random() * (currentDate.getTime() - fiveYearsAgo.getTime());
+  return new Date(randomTime).toISOString().split("T")[0];
+};
+
 const initialState = {
-  list: [],
+  list: [
+    {
+      id: "1",
+      firstName: "Leanne",
+      lastName: "Graham",
+      email: "Sincere@april.biz",
+      contactAt: generateRandomDate(),
+      address: "New street, 2505 - Chicago",
+      phone: "1-555-264-2033",
+      status: "activated",
+    },
+  ],
   loading: false,
   error: null,
 };
@@ -11,8 +33,15 @@ const clientsSlice = createSlice({
   name: "clients",
   initialState,
   reducers: {
+    setClients: (state, action) => {
+      state.list = action.payload;
+    },
     addClient: (state, action) => {
-      state.list.push(action.payload);
+      const newClient = {
+        ...action.payload,
+        contactAt: generateRandomDate(),
+      };
+      state.list.push(newClient);
     },
     removeClient: (state, action) => {
       state.list = state.list.filter((c) => c.id !== action.payload);
@@ -23,9 +52,6 @@ const clientsSlice = createSlice({
       if (index !== -1) {
         state.list[index] = { ...state.list[index], ...data };
       }
-    },
-    setClients: (state, action) => {
-      state.list = action.payload;
     },
     setLoading: (state, action) => {
       state.loading = action.payload;

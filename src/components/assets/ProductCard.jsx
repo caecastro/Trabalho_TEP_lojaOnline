@@ -9,7 +9,7 @@ import {
   Popconfirm,
 } from "antd";
 import PropTypes from "prop-types";
-import { useTheme } from "../../contexts/ThemeContext.jsx"; // ✅ caminho corrigido
+import { useTheme } from "../../contexts/ThemeContext.jsx";
 import { useCart } from "../../contexts/CartContext.jsx";
 import { EditOutlined, DeleteOutlined } from "@ant-design/icons";
 
@@ -69,7 +69,7 @@ export default function ProductCard({
         showActions
           ? [
               <Button
-                key={`edit-${product.id}`} // ✅ key única
+                key={`edit-${product.id}`}
                 type="link"
                 icon={<EditOutlined />}
                 onClick={handleEdit}
@@ -78,7 +78,7 @@ export default function ProductCard({
                 Edit
               </Button>,
               <Popconfirm
-                key={`delete-${product.id}`} // ✅ key única
+                key={`delete-${product.id}`}
                 title="Delete Product"
                 description="Are you sure you want to delete this product?"
                 onConfirm={handleDelete}
@@ -111,7 +111,7 @@ export default function ProductCard({
         <div className="flex items-center gap-2 mb-2">
           <Rate
             disabled
-            defaultValue={product.rating?.rate || 4}
+            value={product.rating?.rate || 4}
             className="text-sm"
           />
           <Text
@@ -154,7 +154,7 @@ export default function ProductCard({
 
 ProductCard.propTypes = {
   product: PropTypes.shape({
-    id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired, // ✅ aceita string ou número
+    id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
     image: PropTypes.string.isRequired,
     title: PropTypes.string.isRequired,
     rating: PropTypes.shape({

@@ -1,3 +1,74 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* Estilos para tema escuro */
+.dark-theme {
+  --ant-color-bg-container: #1f1f1f;
+  --ant-color-bg-layout: #000000;
+  --ant-color-text: #ffffff;
+}
+
+.light-theme {
+  --ant-color-bg-container: #ffffff;
+  --ant-color-bg-layout: #f5f5f5;
+  --ant-color-text: #000000;
+}
+
+/* Ajustes para tabela no tema escuro */
+.dark-table .ant-table {
+  background: transparent;
+}
+
+.dark-table .ant-table-thead > tr > th {
+  background-color: #1f1f1f;
+  color: #ffffff;
+  border-bottom: 1px solid #434343;
+}
+
+.dark-table .ant-table-tbody > tr > td {
+  border-bottom: 1px solid #434343;
+  color: #ffffff;
+}
+
+.dark-table .ant-table-tbody > tr:hover > td {
+  background-color: #2a2a2a;
+}
+
+/* Ajustes para drawer no tema escuro */
+.dark-drawer .ant-drawer-content {
+  background-color: #1f1f1f;
+}
+
+.dark-drawer .ant-drawer-header {
+  background-color: #1f1f1f;
+  border-bottom: 1px solid #434343;
+}
+
+.dark-drawer .ant-drawer-title {
+  color: #ffffff;
+}
+
+/* Garantir que todos os textos sejam visíveis no tema escuro */
+.ant-typography {
+  color: inherit;
+}
+
+/* Loading states */
+.loading-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 200px;
+}
+
+/* Responsividade melhorada */
+@media (max-width: 768px) {
+  .ant-table {
+    font-size: 12px;
+  }
+
+  .ant-card-body {
+    padding: 12px;
+  }
+}

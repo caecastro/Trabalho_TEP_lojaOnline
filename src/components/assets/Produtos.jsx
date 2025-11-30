@@ -80,7 +80,7 @@ export default function Produtos() {
   }
 
   return (
-    <div className="flex justify-center gap-6">
+    <div className="flex justify-center gap-6 flex-wrap">
       {produtos.map((produto) => (
         <Card
           key={produto.id}
@@ -89,11 +89,13 @@ export default function Produtos() {
               ? "bg-gray-800 border-gray-700"
               : "bg-white border-gray-200"
           } flex flex-col transition-transform hover:scale-105`}
-          bodyStyle={{
-            padding: "20px",
-            flex: 1,
-            display: "flex",
-            flexDirection: "column",
+          styles={{
+            body: {
+              padding: "20px",
+              flex: 1,
+              display: "flex",
+              flexDirection: "column",
+            },
           }}
           cover={
             <div className="flex justify-center p-6 bg-white">
@@ -104,7 +106,20 @@ export default function Produtos() {
                 height={120}
                 style={{ objectFit: "contain" }}
                 preview={{
-                  mask: <EyeFilled onClick={() => abrirNotificacao(produto)} />,
+                  // CORREÇÃO: usar toolbarRender em vez de mask
+                  toolbarRender: () => (
+                    <div className="ant-image-preview-operations">
+                      <EyeFilled
+                        onClick={() => abrirNotificacao(produto)}
+                        style={{
+                          color: "#fff",
+                          fontSize: "16px",
+                          cursor: "pointer",
+                          padding: "8px",
+                        }}
+                      />
+                    </div>
+                  ),
                 }}
               />
             </div>

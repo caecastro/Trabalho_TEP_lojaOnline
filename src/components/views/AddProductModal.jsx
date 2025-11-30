@@ -25,11 +25,16 @@ export default function AddProductModal({ visible, onCancel, onAddProduct }) {
     }
   };
 
+  const handleCancel = () => {
+    form.resetFields();
+    onCancel();
+  };
+
   return (
     <Modal
       title="New Product"
       open={visible}
-      onCancel={onCancel}
+      onCancel={handleCancel}
       onOk={() => form.submit()}
       okText="Save"
       cancelText="Cancel"
@@ -37,7 +42,9 @@ export default function AddProductModal({ visible, onCancel, onAddProduct }) {
       maskClosable={false}
       keyboard={false}
       width={600}
+      afterClose={() => form.resetFields()} // CORREÇÃO: resetar após fechar
     >
+      {/* CORREÇÃO: Form conectado ao Modal */}
       <Form
         form={form}
         layout="vertical"
