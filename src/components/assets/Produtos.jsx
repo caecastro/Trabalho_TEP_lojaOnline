@@ -109,7 +109,7 @@ export default function Produtos() {
                 <div
                   className={`text-lg font-bold ${
                     isDarkMode ? "text-white" : "text-gray-900"
-                  } text-right mb-3`}
+                  } text-center mb-3`}
                 >
                   ${produto.price}
                 </div>
