@@ -238,13 +238,13 @@ export default function Products() {
           />
         </div>
 
-        {/* Grid de produtos responsivo */}
+        {/* Grid de produtos ajustada para 3 em 3 */}
         <Row
-          gutter={[screens.xs ? 12 : 16, screens.xs ? 12 : 24]}
+          gutter={[screens.xs ? 16 : 20, screens.xs ? 16 : 24]}
           justify={screens.xs ? "center" : "start"}
         >
           {filteredProducts.map((product) => (
-            <Col key={product.id} xs={24} sm={12} md={8} lg={8} xl={6} xxl={4}>
+            <Col key={product.id} xs={24} sm={12} md={8} lg={8} xl={8} xxl={8}>
               <ProductGridItem
                 product={product}
                 onBuy={handleBuy}
