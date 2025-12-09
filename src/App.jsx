@@ -1,48 +1,70 @@
+import { Layout, Typography, theme } from "antd";
 import Controller from "./components/views/Controller";
 import Produtos from "./components/assets/Produtos";
-import { useTheme } from "./contexts/ThemeContext";
+
+const { Content, Footer } = Layout;
+const { Title } = Typography;
 
 export default function App() {
-  const { isDarkMode } = useTheme();
-
-  const themeClasses = {
-    bg: isDarkMode ? "bg-gray-900 text-white" : "bg-white text-gray-900",
-    text: {
-      primary: isDarkMode ? "text-white" : "text-gray-900",
-      secondary: isDarkMode ? "text-gray-300" : "text-gray-700",
-    },
-    border: isDarkMode
-      ? "border-gray-700 text-gray-400"
-      : "border-gray-300 text-gray-600",
-  };
+  const { token } = theme.useToken();
 
   return (
-    <div className={`min-h-screen flex flex-col ${themeClasses.bg}`}>
+    <Layout style={{ minHeight: "100vh" }}>
       <Controller />
 
-      <main className="flex flex-col items-center py-6 sm:py-8 md:py-10 px-4 sm:px-6 flex-1">
-        <h1
-          className={`text-2xl sm:text-3xl md:text-4xl font-bold mb-2 text-center ${themeClasses.text.primary}`}
+      <Content
+        style={{
+          padding: token.paddingLG,
+          backgroundColor: token.colorBgContainer,
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+        }}
+      >
+        <div
+          style={{
+            textAlign: "center",
+            marginBottom: token.marginXXL,
+            maxWidth: 800,
+            width: "100%",
+          }}
         >
-          Welcome to the Shop
-        </h1>
-        <h2
-          className={`text-lg sm:text-xl md:text-2xl font-medium mb-6 sm:mb-8 md:mb-10 text-center ${themeClasses.text.secondary}`}
-        >
-          Top 5 Products
-        </h2>
+          <Title
+            level={1}
+            style={{
+              color: token.colorTextHeading,
+              marginBottom: token.marginSM,
+            }}
+          >
+            Welcome to the Shop
+          </Title>
+          <Title
+            level={2}
+            type="secondary"
+            style={{
+              color: token.colorTextSecondary,
+              marginBottom: token.marginXXL,
+            }}
+          >
+            Top 5 Products
+          </Title>
+        </div>
 
-        {/* Container principal ajustado */}
-        <div className="w-full max-w-6xl px-3 sm:px-4 md:px-6">
+        <div style={{ width: "100%", maxWidth: 1200 }}>
           <Produtos />
         </div>
-      </main>
+      </Content>
 
-      <footer
-        className={`w-full text-center py-4 sm:py-6 border-t text-sm sm:text-base ${themeClasses.border}`}
+      <Footer
+        style={{
+          textAlign: "center",
+          borderTop: `1px solid ${token.colorBorder}`,
+          color: token.colorTextSecondary,
+          padding: `${token.paddingLG}px 0`,
+        }}
       >
         IFSC ©2025 Created by Lidiane Visintin
-      </footer>
-    </div>
+      </Footer>
+    </Layout>
   );
 }

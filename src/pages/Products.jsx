@@ -1,38 +1,41 @@
 import { useState, useEffect, useMemo } from "react";
 import {
+  Layout,
   Typography,
-  Divider,
   Spin,
   Button,
   notification,
   Input,
-  Flex,
   Row,
   Col,
-  Grid,
+  Card,
+  Image,
+  Rate,
   Tag,
+  Space,
+  Divider,
+  theme,
+  Grid,
 } from "antd";
 import { useAuth } from "../contexts/AuthContext";
 import { useProducts } from "../hooks/useProducts";
 import { useCart } from "../hooks/useCart";
 import Controller from "../components/views/Controller";
-import ProductGridItem from "../components/assets/ProductGridItem";
 import AddProductModal from "../components/views/AddProductModal";
 import EditProductModal from "../components/views/EditProductModal";
-import { useTheme } from "../contexts/ThemeContext";
 
-const { Title, Text } = Typography;
+const { Title, Text, Paragraph } = Typography;
 const { Search } = Input;
+const { Content, Footer } = Layout;
+const { useToken } = theme;
 const { useBreakpoint } = Grid;
 
 export default function Products() {
-  // Estados para modais e busca
   const [modalVisible, setModalVisible] = useState(false);
   const [editModalVisible, setEditModalVisible] = useState(false);
   const [editingProduct, setEditingProduct] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
 
-  // Hooks customizados
   const { user } = useAuth();
   const {
     products,
@@ -43,15 +46,13 @@ export default function Products() {
     loadApiProducts,
   } = useProducts();
   const { addItem } = useCart();
-  const { isDarkMode } = useTheme();
   const screens = useBreakpoint();
+  const { token } = useToken();
 
-  // Carrega produtos da API ao montar componente
   useEffect(() => {
     loadApiProducts(20);
   }, []);
 
-  // Filtra produtos baseado no termo de busca
   const filteredProducts = useMemo(() => {
     if (!searchTerm) return products;
     return products.filter((product) =>
@@ -59,7 +60,6 @@ export default function Products() {
     );
   }, [products, searchTerm]);
 
-  // Manipuladores de produtos
   const handleAddProduct = async (productData) => {
     try {
       await addProduct(productData);
@@ -121,176 +121,216 @@ export default function Products() {
     });
   };
 
-  // Estatísticas de produtos
   const productStats = {
-    api: products.filter((p) => !p.isLocal).length,
-    local: products.filter((p) => p.isLocal).length,
+    api: products.filter((p) => !p.isLocal && !p.isEditedApiProduct).length,
+    local: products.filter((p) => p.isLocal && !p.isEditedApiProduct).length,
+    editedApi: products.filter((p) => p.isEditedApiProduct).length,
   };
 
-  // Loading state
   if (loading && products.length === 0) {
     return (
-      <div
-        className={`min-h-screen flex flex-col ${
-          isDarkMode ? "bg-gray-900" : "bg-white"
-        }`}
-      >
+      <Layout style={{ minHeight: "100vh" }}>
         <Controller />
-        <div className="flex-1 flex justify-center items-center p-4">
-          <div className="text-center">
-            <Spin size="large" />
-            <span
-              className={`block mt-4 ${
-                isDarkMode ? "text-gray-300" : "text-gray-600"
-              }`}
-            >
-              Carregando produtos...
-            </span>
-          </div>
-        </div>
-      </div>
+        <Content
+          style={{
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            padding: token.paddingXXL,
+          }}
+        >
+          <Spin size="large" />
+          <Text style={{ marginLeft: token.marginMD }}>
+            Carregando produtos...
+          </Text>
+        </Content>
+      </Layout>
     );
   }
 
   return (
-    <div
-      className={`min-h-screen flex flex-col ${
-        isDarkMode ? "bg-gray-900" : "bg-white"
-      }`}
-    >
+    <Layout style={{ minHeight: "100vh" }}>
       <Controller />
 
-      <div className="flex-1 w-full max-w-7xl mx-auto px-3 sm:px-4 lg:px-6 py-4 sm:py-6 lg:py-8">
-        {/* Cabeçalho com título e ações */}
-        <Flex
-          vertical={!screens.sm}
-          gap="small"
-          justify="space-between"
-          align={screens.sm ? "center" : "start"}
-          className="mb-6 sm:mb-8"
+      <Content
+        style={{
+          padding: token.paddingLG,
+          backgroundColor: token.colorBgContainer,
+        }}
+      >
+        <div
+          style={{
+            marginBottom: token.marginLG,
+            textAlign: "center",
+          }}
         >
-          <Flex vertical gap="small">
-            <Title
-              level={screens.xs ? 2 : 1}
-              className={`m-0 text-center sm:text-left ${
-                isDarkMode ? "text-white" : "text-gray-900"
-              }`}
-            >
-              List of Products
-            </Title>
-            <div className="flex gap-2 justify-center sm:justify-start">
-              <Tag color="blue">API: {productStats.api}</Tag>
-              <Tag color="green">Local: {productStats.local}</Tag>
-            </div>
-          </Flex>
+          <Title level={1} style={{ marginBottom: token.marginSM }}>
+            List of Products
+          </Title>
 
-          {/* Seção do usuário e botão de ação */}
-          {user && (
-            <Flex
-              vertical={!screens.xs}
-              gap="small"
-              align={screens.xs ? "stretch" : "center"}
-              className="w-full sm:w-auto"
-            >
-              <Flex
-                vertical
-                align={screens.xs ? "center" : "flex-end"}
-                className={screens.xs ? "text-center" : ""}
-              >
-                <Text
-                  strong
-                  className={`${isDarkMode ? "text-white" : "text-gray-900"} ${
-                    screens.xs ? "text-base" : ""
-                  }`}
-                >
-                  {user.name}
-                </Text>
-                <Text
-                  type="secondary"
-                  className={isDarkMode ? "text-gray-400" : ""}
-                >
-                  {user.email}
-                </Text>
-              </Flex>
-              <Button
-                type="primary"
-                onClick={() => setModalVisible(true)}
-                className="w-full sm:w-auto"
-                size={screens.xs ? "middle" : "large"}
-              >
-                Add Product
-              </Button>
-            </Flex>
-          )}
-        </Flex>
+          <Space size="small" style={{ marginBottom: token.marginMD }}>
+            <Tag color="blue">API: {productStats.api}</Tag>
+            <Tag color="green">Local: {productStats.local}</Tag>
+            <Tag color="orange">Editados: {productStats.editedApi}</Tag>
+          </Space>
+        </div>
 
-        <Divider className={isDarkMode ? "bg-gray-700" : ""} />
-
-        {/* Barra de busca */}
-        <div className="mb-6 flex justify-center sm:justify-start">
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "center",
+            marginBottom: token.marginLG,
+          }}
+        >
           <Search
             placeholder="Buscar produtos pelo nome..."
             allowClear
-            size={screens.xs ? "middle" : "large"}
+            size="large"
             onChange={(e) => setSearchTerm(e.target.value)}
-            style={{ width: screens.xs ? "100%" : "400px", maxWidth: "100%" }}
-            className={isDarkMode ? "dark-search" : ""}
+            style={{ width: "100%", maxWidth: 400 }}
           />
         </div>
 
-        {/* Grid de produtos ajustada para 3 em 3 */}
-        <Row
-          gutter={[screens.xs ? 16 : 20, screens.xs ? 16 : 24]}
-          justify={screens.xs ? "center" : "start"}
-        >
+        {user && (
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "flex-end",
+              marginBottom: token.marginLG,
+            }}
+          >
+            <Button
+              type="primary"
+              size="large"
+              onClick={() => setModalVisible(true)}
+            >
+              Add Product
+            </Button>
+          </div>
+        )}
+
+        <Row gutter={[token.marginLG, token.marginLG]}>
           {filteredProducts.map((product) => (
-            <Col key={product.id} xs={24} sm={12} md={8} lg={8} xl={8} xxl={8}>
-              <ProductGridItem
-                product={product}
-                onBuy={handleBuy}
-                onEdit={openEditModal}
-                onDelete={handleDeleteProduct}
-                showActions={!!user}
-                compact={screens.xs}
-              />
+            <Col xs={24} sm={12} md={8} lg={6} key={product.id}>
+              <Card
+                hoverable
+                style={{ height: "100%" }}
+                cover={
+                  <div
+                    style={{
+                      padding: token.paddingMD,
+                      backgroundColor: token.colorBgLayout,
+                      display: "flex",
+                      justifyContent: "center",
+                      alignItems: "center",
+                      height: 200,
+                    }}
+                  >
+                    <Image
+                      src={product.image}
+                      alt={product.title}
+                      style={{
+                        maxHeight: 160,
+                        maxWidth: "100%",
+                        objectFit: "contain",
+                      }}
+                    />
+                  </div>
+                }
+              >
+                <Card.Meta
+                  title={
+                    <Text strong ellipsis={{ rows: 2 }}>
+                      {product.title}
+                    </Text>
+                  }
+                  description={
+                    <>
+                      <div style={{ marginBottom: token.marginXS }}>
+                        <Rate
+                          disabled
+                          defaultValue={product.rating?.rate || 4}
+                          size="small"
+                        />
+                        <Text
+                          type="secondary"
+                          style={{ marginLeft: token.marginXS }}
+                        >
+                          ({product.rating?.count || 0})
+                        </Text>
+                      </div>
+                      <Paragraph
+                        type="secondary"
+                        ellipsis={{ rows: 3 }}
+                        style={{ fontSize: token.fontSizeSM, margin: 0 }}
+                      >
+                        {product.description}
+                      </Paragraph>
+                      <Divider style={{ margin: `${token.marginXS}px 0` }} />
+                      <div
+                        style={{
+                          display: "flex",
+                          justifyContent: "space-between",
+                          alignItems: "center",
+                        }}
+                      >
+                        <Title
+                          level={4}
+                          style={{
+                            color: token.colorPrimary,
+                            margin: 0,
+                          }}
+                        >
+                          US$ {product.price}
+                        </Title>
+                        <Button
+                          type="primary"
+                          onClick={() => handleBuy(product)}
+                        >
+                          Buy
+                        </Button>
+                      </div>
+                    </>
+                  }
+                />
+              </Card>
             </Col>
           ))}
         </Row>
 
-        {/* Estado vazio */}
         {filteredProducts.length === 0 && !loading && (
-          <div className="text-center py-8 sm:py-12">
-            <Text
-              type="secondary"
-              className={`${
-                isDarkMode ? "text-gray-400" : ""
-              } text-base sm:text-lg`}
-            >
+          <div
+            style={{
+              textAlign: "center",
+              padding: token.paddingXXL,
+            }}
+          >
+            <Text type="secondary">
               {searchTerm
                 ? "Nenhum produto encontrado para sua busca."
                 : "Nenhum produto encontrado."}
             </Text>
           </div>
         )}
-      </div>
+      </Content>
 
-      {/* Footer */}
-      <footer
-        className={`w-full text-center py-4 sm:py-6 border-t text-sm sm:text-base ${
-          isDarkMode
-            ? "border-gray-700 text-gray-400"
-            : "border-gray-300 text-gray-600"
-        }`}
+      <Footer
+        style={{
+          textAlign: "center",
+          borderTop: `1px solid ${token.colorBorder}`,
+          color: token.colorTextSecondary,
+          padding: `${token.paddingLG}px 0`,
+        }}
       >
         IFSC ©2025 Created by Lidiane Visintin
-      </footer>
+      </Footer>
 
-      {/* Modais */}
       <AddProductModal
         visible={modalVisible}
         onCancel={() => setModalVisible(false)}
         onAddProduct={handleAddProduct}
       />
+
       <EditProductModal
         visible={editModalVisible}
         onCancel={() => {
@@ -300,6 +340,6 @@ export default function Products() {
         onEditProduct={handleEditProduct}
         product={editingProduct}
       />
-    </div>
+    </Layout>
   );
 }

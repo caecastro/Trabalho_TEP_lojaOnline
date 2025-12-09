@@ -4,33 +4,18 @@ import PropTypes from "prop-types";
 const { Option } = Select;
 const { TextArea } = Input;
 
-/**
- * Modal para adição de novos produtos
- * Formulário com validação para criar produtos customizados
- */
 export default function AddProductModal({ visible, onCancel, onAddProduct }) {
   const [form] = Form.useForm();
 
-  // Submete dados do formulário para criação do produto
   const handleSubmit = async (values) => {
     try {
-      const productData = {
-        title: values.title,
-        price: values.price,
-        image: values.image,
-        description: values.description,
-        category: values.category,
-      };
-
-      await onAddProduct(productData);
+      await onAddProduct(values);
       form.resetFields();
     } catch (error) {
-      console.error("Erro ao adicionar produto:", error);
       throw error;
     }
   };
 
-  // Fecha modal e limpa formulário
   const handleCancel = () => {
     form.resetFields();
     onCancel();
@@ -44,19 +29,13 @@ export default function AddProductModal({ visible, onCancel, onAddProduct }) {
       onOk={() => form.submit()}
       okText="Save"
       cancelText="Cancel"
-      okButtonProps={{ className: "bg-blue-600 hover:bg-blue-700 border-0" }}
-      maskClosable={false}
-      keyboard={false}
       width={600}
-      afterClose={() => form.resetFields()} // Garante reset após fechar completamente
     >
-      {/* Formulário de criação de produto */}
       <Form
         form={form}
         layout="vertical"
         onFinish={handleSubmit}
-        requiredMark={false}
-        className="mt-4"
+        style={{ marginTop: 24 }}
       >
         <Form.Item
           label="Title"
@@ -82,8 +61,8 @@ export default function AddProductModal({ visible, onCancel, onAddProduct }) {
           <Select placeholder="Select category" size="large">
             <Option value="electronics">Electronics</Option>
             <Option value="jewelery">Jewelery</Option>
-            <Option value="men's clothing">Men Clothing</Option>
-            <Option value="women's clothing">Women Clothing</Option>
+            <Option value="men's clothing">Men's Clothing</Option>
+            <Option value="women's clothing">Women's Clothing</Option>
           </Select>
         </Form.Item>
 
@@ -117,7 +96,6 @@ export default function AddProductModal({ visible, onCancel, onAddProduct }) {
   );
 }
 
-// Validação de props para melhor debugging
 AddProductModal.propTypes = {
   visible: PropTypes.bool.isRequired,
   onCancel: PropTypes.func.isRequired,

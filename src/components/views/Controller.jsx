@@ -30,27 +30,32 @@ import CartDrawer from "./CartDrawer";
 const { useBreakpoint } = Grid;
 const { Text } = Typography;
 
-/**
- * Componente de controle principal - header com navegação e ações
- * Responsivo com diferentes layouts para mobile, tablet e desktop
- */
 export default function Controller() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { user, logout } = useAuth();
+  const { user, login, logout } = useAuth();
   const { isDarkMode, toggleTheme } = useTheme();
   const { getTotalItems } = useCart();
   const [cartVisible, setCartVisible] = useState(false);
   const screens = useBreakpoint();
 
-  // Realiza logout e redireciona para home
+  const mockUser = {
+    id: 1,
+    name: "John Doe",
+    username: "johndoe",
+    email: "john.doe@example.com",
+  };
+
   const handleLogout = () => {
     logout();
     message.success("Logout realizado com sucesso!");
-    navigate("/");
   };
 
-  // Estilo dinâmico para botões de navegação baseado na rota atual
+  const handleLogin = () => {
+    login(mockUser);
+    message.success("Login realizado com sucesso!");
+  };
+
   const getNavButtonStyle = (path) => {
     const isActive = location.pathname === path;
     return `flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-1 sm:py-2 rounded-md transition text-sm sm:text-base ${
@@ -62,7 +67,6 @@ export default function Controller() {
     }`;
   };
 
-  // Menu dropdown para dispositivos móveis
   const mobileMenuItems = [
     {
       key: "1",
@@ -111,12 +115,11 @@ export default function Controller() {
             key: "6",
             icon: <UserSwitchOutlined />,
             label: "Login",
-            onClick: () => navigate("/products"),
+            onClick: handleLogin,
           },
         ]),
   ];
 
-  // Menu do usuário para informações e ações
   const userMenuItems = user
     ? [
         {
@@ -153,11 +156,10 @@ export default function Controller() {
           key: "login",
           icon: <UserSwitchOutlined />,
           label: "Login",
-          onClick: () => navigate("/products"),
+          onClick: handleLogin,
         },
       ];
 
-  // Formata nome do usuário para diferentes tamanhos de tela
   const getAbbreviatedName = (name) => {
     if (!name) return "User";
     if (screens.xs)
@@ -173,7 +175,6 @@ export default function Controller() {
     return name;
   };
 
-  // Gera inicial para avatar baseado no nome
   const getUserAvatar = () => user?.name?.charAt(0).toUpperCase() || "U";
 
   return (
@@ -190,9 +191,7 @@ export default function Controller() {
             screens.xs ? "px-2 py-2" : "px-3 sm:px-4 lg:px-6 py-3 sm:py-4"
           }`}
         >
-          {/* Linha principal do header */}
           <div className="flex items-center justify-between gap-2 sm:gap-4">
-            {/* Logo e nome da loja */}
             <div
               className="flex items-center gap-1 sm:gap-2 cursor-pointer flex-shrink-0"
               onClick={() => navigate("/")}
@@ -211,7 +210,6 @@ export default function Controller() {
               </span>
             </div>
 
-            {/* Navegação para desktop */}
             <div className="hidden md:flex items-center gap-1 lg:gap-2 flex-1 justify-center">
               <Button
                 type="text"
@@ -239,7 +237,6 @@ export default function Controller() {
               </Button>
             </div>
 
-            {/* Navegação para tablet (apenas ícones) */}
             <div className="hidden sm:flex md:hidden items-center gap-1 flex-1 justify-center">
               <Button
                 type="text"
@@ -261,9 +258,7 @@ export default function Controller() {
               />
             </div>
 
-            {/* Área de controles à direita */}
             <div className="flex items-center gap-1 sm:gap-2 lg:gap-3 flex-shrink-0">
-              {/* Toggle de tema claro/escuro */}
               <Switch
                 checked={isDarkMode}
                 onChange={toggleTheme}
@@ -275,7 +270,6 @@ export default function Controller() {
                 }
               />
 
-              {/* Ícone do carrinho com badge de quantidade */}
               <Badge
                 count={getTotalItems()}
                 size="small"
@@ -298,7 +292,6 @@ export default function Controller() {
                 </Button>
               </Badge>
 
-              {/* Informações do usuário para desktop */}
               {screens.lg && user && (
                 <Space size="small">
                   <Avatar
@@ -332,7 +325,6 @@ export default function Controller() {
                 </Space>
               )}
 
-              {/* Usuário logado em tablet */}
               {screens.sm && !screens.lg && user && (
                 <Space size="small">
                   <Avatar
@@ -351,18 +343,16 @@ export default function Controller() {
                 </Space>
               )}
 
-              {/* Usuário não logado em desktop/tablet */}
               {screens.sm && !user && (
                 <Button
                   type="text"
                   size={screens.sm ? "small" : "middle"}
-                  onClick={() => navigate("/products")}
+                  onClick={handleLogin}
                 >
                   {screens.lg ? "Login" : <UserSwitchOutlined />}
                 </Button>
               )}
 
-              {/* Menu mobile principal */}
               <div className="sm:hidden">
                 <Dropdown
                   menu={{ items: mobileMenuItems }}
@@ -383,7 +373,6 @@ export default function Controller() {
                 </Dropdown>
               </div>
 
-              {/* Menu do usuário para tablet */}
               {screens.sm && !screens.lg && (
                 <div className="md:hidden">
                   <Dropdown
@@ -410,7 +399,6 @@ export default function Controller() {
                 </div>
               )}
 
-              {/* Menu do usuário para desktop compacto */}
               {screens.lg && user && (
                 <div className="lg:hidden xl:block">
                   <Dropdown
@@ -437,7 +425,6 @@ export default function Controller() {
             </div>
           </div>
 
-          {/* Navegação secundária para tablet (labels abaixo) */}
           {screens.sm && !screens.md && (
             <div className="flex justify-center mt-2">
               <Space size="middle">
@@ -489,7 +476,6 @@ export default function Controller() {
         </div>
       </header>
 
-      {/* Drawer do carrinho de compras */}
       <CartDrawer visible={cartVisible} onClose={() => setCartVisible(false)} />
     </>
   );

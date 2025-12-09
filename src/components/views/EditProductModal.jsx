@@ -1,14 +1,19 @@
 import React, { useEffect } from "react";
-import { Modal, Form, Input, InputNumber, Select } from "antd";
+import {
+  Modal,
+  Form,
+  Input,
+  InputNumber,
+  Select,
+  Typography,
+  Alert,
+} from "antd";
 import PropTypes from "prop-types";
 
 const { Option } = Select;
 const { TextArea } = Input;
+const { Text } = Typography;
 
-/**
- * Modal para edição de produtos existentes
- * Preenche automaticamente os campos com dados do produto
- */
 export default function EditProductModal({
   visible,
   onCancel,
@@ -17,20 +22,18 @@ export default function EditProductModal({
 }) {
   const [form] = Form.useForm();
 
-  // Preenche formulário quando produto ou visibilidade mudam
   useEffect(() => {
     if (product && visible) {
       form.setFieldsValue({
         title: product.title,
         description: product.description,
-        category: product.category,
+        category: product.category || "electronics",
         price: product.price,
         image: product.image,
       });
     }
   }, [product, visible, form]);
 
-  // Submete dados do formulário para edição
   const handleSubmit = async (values) => {
     try {
       const productData = {
@@ -49,7 +52,6 @@ export default function EditProductModal({
     }
   };
 
-  // Fecha modal e reseta formulário
   const handleCancel = () => {
     form.resetFields();
     onCancel();
@@ -57,19 +59,36 @@ export default function EditProductModal({
 
   return (
     <Modal
-      title="Edit Product"
+      title={
+        <div>
+          <div>Edit Product</div>
+          {product?.isEditedApiProduct && (
+            <Text type="secondary" style={{ fontSize: "12px" }}>
+              (Esta edição substituirá o produto original)
+            </Text>
+          )}
+        </div>
+      }
       open={visible}
       onCancel={handleCancel}
       onOk={() => form.submit()}
       okText="Save Changes"
       cancelText="Cancel"
-      okButtonProps={{ className: "bg-blue-600 hover:bg-blue-700 border-0" }}
       maskClosable={false}
       keyboard={false}
       width={600}
-      afterClose={() => form.resetFields()} // Garante reset após fechar
+      afterClose={() => form.resetFields()}
     >
-      {/* Formulário de edição de produto */}
+      {product?.isEditedApiProduct && (
+        <Alert
+          message="Produto da API"
+          description="As alterações serão salvas e o produto original será substituído."
+          type="info"
+          showIcon
+          style={{ marginBottom: 16 }}
+        />
+      )}
+
       <Form
         form={form}
         layout="vertical"
@@ -101,8 +120,9 @@ export default function EditProductModal({
           <Select placeholder="Select category" size="large">
             <Option value="electronics">Electronics</Option>
             <Option value="jewelery">Jewelery</Option>
-            <Option value="men's clothing">Men Clothing</Option>
-            <Option value="women's clothing">Women Clothing</Option>
+            <Option value="men's clothing">Men's Clothing</Option>
+            <Option value="women's clothing">Women's Clothing</Option>
+            <Option value="other">Other</Option>
           </Select>
         </Form.Item>
 
@@ -136,7 +156,6 @@ export default function EditProductModal({
   );
 }
 
-// Validação de props para melhor debugging
 EditProductModal.propTypes = {
   visible: PropTypes.bool.isRequired,
   onCancel: PropTypes.func.isRequired,
