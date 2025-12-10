@@ -11,7 +11,8 @@ import {
   Avatar,
   Typography,
   message,
-} from "antd";
+  Image,
+} from "antd"; // ADICIONE Image
 import { useTheme } from "../../contexts/ThemeContext";
 import { useCart } from "../../hooks/useCart";
 import {
@@ -192,15 +193,33 @@ export default function Controller() {
           }`}
         >
           <div className="flex items-center justify-between gap-2 sm:gap-4">
+            {/* LOGO ATUALIZADA AQUI - ÍCONE ANTIGO SUBSTITUÍDO */}
             <div
               className="flex items-center gap-1 sm:gap-2 cursor-pointer flex-shrink-0"
               onClick={() => navigate("/")}
             >
+              {/* ÍCONE ANTIGO REMOVIDO
               <img
                 src="https://cdn-icons-png.flaticon.com/512/3081/3081559.png"
                 alt="Logo"
                 className={screens.xs ? "w-6 h-6" : "w-7 h-7 sm:w-8 sm:h-8"}
               />
+              */}
+
+              {/* NOVO LOGO DO SEU PNG */}
+              <Image
+                src="/logo.png" // Caminho relativo à pasta public
+                alt="Shop Logo"
+                width={screens.xs ? 32 : 40}
+                height={screens.xs ? 32 : 40}
+                preview={false}
+                style={{
+                  objectFit: "contain",
+                  borderRadius: "8px",
+                }}
+                fallback="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40' viewBox='0 0 40 40'%3E%3Crect width='40' height='40' fill='%23f5f5f5'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-family='Arial' font-size='12' fill='%23999'%3ELogo%3C/text%3E%3C/svg%3E"
+              />
+
               <span
                 className={`font-semibold ${
                   screens.xs ? "text-lg" : "text-xl sm:text-2xl"

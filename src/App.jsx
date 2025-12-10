@@ -11,6 +11,7 @@ export default function App() {
   return (
     <Layout style={{ minHeight: "100vh" }}>
       <Controller />
+      {/* O Controller já tem o logo, então NÃO precisa de logo aqui no App */}
 
       <Content
         style={{
