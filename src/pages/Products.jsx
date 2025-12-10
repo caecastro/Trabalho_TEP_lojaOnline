@@ -8,14 +8,12 @@ import {
   Input,
   Row,
   Col,
-  Card,
-  Image,
-  Rate,
-  Tag,
   Space,
   Divider,
   theme,
   Grid,
+  Card,
+  Badge,
 } from "antd";
 import { useAuth } from "../contexts/AuthContext";
 import { useProducts } from "../hooks/useProducts";
@@ -23,8 +21,10 @@ import { useCart } from "../hooks/useCart";
 import Controller from "../components/views/Controller";
 import AddProductModal from "../components/views/AddProductModal";
 import EditProductModal from "../components/views/EditProductModal";
+import ProductGridItem from "../components/assets/ProductGridItem";
+import ProductManagementPanel from "../components/views/ProductManagementPanel";
 
-const { Title, Text, Paragraph } = Typography;
+const { Title, Text } = Typography;
 const { Search } = Input;
 const { Content, Footer } = Layout;
 const { useToken } = theme;
@@ -50,7 +50,22 @@ export default function Products() {
   const { token } = useToken();
 
   useEffect(() => {
-    loadApiProducts(20);
+    const loadData = async () => {
+      await loadApiProducts(20);
+    };
+
+    loadData();
+
+    // Adiciona listener para atualizar quando produtos forem restaurados
+    const handleProductsUpdated = () => {
+      loadApiProducts(20);
+    };
+
+    window.addEventListener("productsUpdated", handleProductsUpdated);
+
+    return () => {
+      window.removeEventListener("productsUpdated", handleProductsUpdated);
+    };
   }, []);
 
   const filteredProducts = useMemo(() => {
@@ -95,7 +110,7 @@ export default function Products() {
 
   const handleDeleteProduct = async (product) => {
     try {
-      await deleteProduct(product.id);
+      await deleteProduct(product);
       notification.success({
         message: "Produto excluído com sucesso!",
         description: "O produto foi removido com sucesso.",
@@ -169,9 +184,30 @@ export default function Products() {
           </Title>
 
           <Space size="small" style={{ marginBottom: token.marginMD }}>
-            <Tag color="blue">API: {productStats.api}</Tag>
-            <Tag color="green">Local: {productStats.local}</Tag>
-            <Tag color="orange">Editados: {productStats.editedApi}</Tag>
+            <Badge
+              count={productStats.api}
+              style={{ backgroundColor: "#1890ff" }}
+            >
+              <Card size="small" style={{ width: 80 }}>
+                <Text strong>API</Text>
+              </Card>
+            </Badge>
+            <Badge
+              count={productStats.local}
+              style={{ backgroundColor: "#52c41a" }}
+            >
+              <Card size="small" style={{ width: 80 }}>
+                <Text strong>Local</Text>
+              </Card>
+            </Badge>
+            <Badge
+              count={productStats.editedApi}
+              style={{ backgroundColor: "#faad14" }}
+            >
+              <Card size="small" style={{ width: 80 }}>
+                <Text strong>Editados</Text>
+              </Card>
+            </Badge>
           </Space>
         </div>
 
@@ -195,10 +231,12 @@ export default function Products() {
           <div
             style={{
               display: "flex",
-              justifyContent: "flex-end",
+              justifyContent: "space-between",
+              alignItems: "center",
               marginBottom: token.marginLG,
             }}
           >
+            <ProductManagementPanel />
             <Button
               type="primary"
               size="large"
@@ -212,88 +250,14 @@ export default function Products() {
         <Row gutter={[token.marginLG, token.marginLG]}>
           {filteredProducts.map((product) => (
             <Col xs={24} sm={12} md={8} lg={6} key={product.id}>
-              <Card
-                hoverable
-                style={{ height: "100%" }}
-                cover={
-                  <div
-                    style={{
-                      padding: token.paddingMD,
-                      backgroundColor: token.colorBgLayout,
-                      display: "flex",
-                      justifyContent: "center",
-                      alignItems: "center",
-                      height: 200,
-                    }}
-                  >
-                    <Image
-                      src={product.image}
-                      alt={product.title}
-                      style={{
-                        maxHeight: 160,
-                        maxWidth: "100%",
-                        objectFit: "contain",
-                      }}
-                    />
-                  </div>
-                }
-              >
-                <Card.Meta
-                  title={
-                    <Text strong ellipsis={{ rows: 2 }}>
-                      {product.title}
-                    </Text>
-                  }
-                  description={
-                    <>
-                      <div style={{ marginBottom: token.marginXS }}>
-                        <Rate
-                          disabled
-                          defaultValue={product.rating?.rate || 4}
-                          size="small"
-                        />
-                        <Text
-                          type="secondary"
-                          style={{ marginLeft: token.marginXS }}
-                        >
-                          ({product.rating?.count || 0})
-                        </Text>
-                      </div>
-                      <Paragraph
-                        type="secondary"
-                        ellipsis={{ rows: 3 }}
-                        style={{ fontSize: token.fontSizeSM, margin: 0 }}
-                      >
-                        {product.description}
-                      </Paragraph>
-                      <Divider style={{ margin: `${token.marginXS}px 0` }} />
-                      <div
-                        style={{
-                          display: "flex",
-                          justifyContent: "space-between",
-                          alignItems: "center",
-                        }}
-                      >
-                        <Title
-                          level={4}
-                          style={{
-                            color: token.colorPrimary,
-                            margin: 0,
-                          }}
-                        >
-                          US$ {product.price}
-                        </Title>
-                        <Button
-                          type="primary"
-                          onClick={() => handleBuy(product)}
-                        >
-                          Buy
-                        </Button>
-                      </div>
-                    </>
-                  }
-                />
-              </Card>
+              <ProductGridItem
+                product={product}
+                onBuy={handleBuy}
+                onEdit={openEditModal}
+                onDelete={handleDeleteProduct}
+                showActions={!!user}
+                compact={screens.xs}
+              />
             </Col>
           ))}
         </Row>

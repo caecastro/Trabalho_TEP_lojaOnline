@@ -9,6 +9,8 @@ import {
   message,
   Grid,
   Tag,
+  Space,
+  Tooltip,
 } from "antd";
 import PropTypes from "prop-types";
 import { useCart } from "../../hooks/useCart";
@@ -34,9 +36,13 @@ export default function ProductGridItem({
     "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120' viewBox='0 0 120 120'%3E%3Crect width='120' height='120' fill='%23f5f5f5'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-family='Arial' font-size='14' fill='%23999'%3EImagem Indisponível%3C/text%3E%3C/svg%3E";
 
   const handleBuy = () => {
-    addItem(product);
-    message.success(`${product.title} adicionado ao carrinho!`);
-    if (onBuy) onBuy(product);
+    // REMOVER: addItem(product); // Não chame aqui para evitar duplicação
+    if (onBuy) {
+      onBuy(product); // Apenas chame a função passada como prop
+    } else {
+      addItem(product);
+      message.success(`${product.title} adicionado ao carrinho!`);
+    }
   };
 
   const handleEdit = () => {
@@ -69,43 +75,27 @@ export default function ProductGridItem({
       }}
       className="hover:shadow-lg"
     >
-      {/* Tags identificadoras */}
-      {isLocalProduct && !isEditedApiProduct && (
-        <Tag
-          color="green"
-          style={{
-            position: "absolute",
-            top: "8px",
-            right: "8px",
-            zIndex: 1,
-            fontSize: "10px",
-            padding: "0 4px",
-          }}
-        >
-          Local
-        </Tag>
-      )}
+      <Space
+        style={{ position: "absolute", top: "8px", left: "8px", zIndex: 1 }}
+      >
+        {isLocalProduct && !isEditedApiProduct && (
+          <Tag color="green" style={{ fontSize: "10px", padding: "0 4px" }}>
+            Local
+          </Tag>
+        )}
 
-      {isEditedApiProduct && (
-        <Tag
-          color="orange"
-          style={{
-            position: "absolute",
-            top: "8px",
-            right: "8px",
-            zIndex: 1,
-            fontSize: "10px",
-            padding: "0 4px",
-          }}
-        >
-          Editado
-        </Tag>
-      )}
+        {isEditedApiProduct && (
+          <Tag color="orange" style={{ fontSize: "10px", padding: "0 4px" }}>
+            Editado
+          </Tag>
+        )}
+      </Space>
 
       <div
         style={{
           textAlign: "center",
           marginBottom: isCompact ? "8px" : "12px",
+          marginTop: isLocalProduct || isEditedApiProduct ? "20px" : "0",
         }}
       >
         <Image
@@ -194,33 +184,34 @@ export default function ProductGridItem({
               Buy
             </Button>
 
-            {/* Ações disponíveis para todos os produtos quando logado */}
             {showActions && (
               <Flex gap="x-small">
-                <Button
-                  type="text"
-                  icon={<EditOutlined />}
-                  onClick={handleEdit}
-                  size={isCompact ? "small" : "middle"}
-                  style={{ color: "#1890ff" }}
-                  title="Edit Product"
-                />
-                <Popconfirm
-                  title="Delete Product"
-                  description="Are you sure you want to delete this product?"
-                  onConfirm={handleDelete}
-                  okText="Yes"
-                  cancelText="No"
-                  okType="danger"
-                >
+                <Tooltip title="Editar produto">
                   <Button
                     type="text"
-                    icon={<DeleteOutlined />}
+                    icon={<EditOutlined />}
+                    onClick={handleEdit}
                     size={isCompact ? "small" : "middle"}
-                    style={{ color: "#ff4d4f" }}
-                    title="Delete Product"
+                    style={{ color: "#1890ff" }}
                   />
-                </Popconfirm>
+                </Tooltip>
+                <Tooltip title="Excluir produto">
+                  <Popconfirm
+                    title="Excluir Produto"
+                    description="Tem certeza que deseja excluir este produto?"
+                    onConfirm={handleDelete}
+                    okText="Sim"
+                    cancelText="Não"
+                    okType="danger"
+                  >
+                    <Button
+                      type="text"
+                      icon={<DeleteOutlined />}
+                      size={isCompact ? "small" : "middle"}
+                      style={{ color: "#ff4d4f" }}
+                    />
+                  </Popconfirm>
+                </Tooltip>
               </Flex>
             )}
           </Flex>

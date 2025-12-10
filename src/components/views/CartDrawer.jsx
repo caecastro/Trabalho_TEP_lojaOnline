@@ -1,3 +1,4 @@
+import { useEffect } from "react"; // Adicionar useEffect
 import {
   Drawer,
   List,
@@ -18,20 +19,39 @@ import { useTheme } from "../../contexts/ThemeContext";
 
 const { Title, Text } = Typography;
 
-/**
- * Drawer lateral para exibição e gerenciamento do carrinho de compras
- * Permite visualizar itens, ajustar quantidades e finalizar compra
- */
 export default function CartDrawer({ visible, onClose }) {
   const { items, removeItem, updateQuantity, clearCart, getTotalPrice } =
     useCart();
   const { isDarkMode } = useTheme();
 
-  // Imagem de fallback para produtos sem imagem
+  // Verificar produtos excluídos quando o drawer abrir
+  useEffect(() => {
+    if (visible) {
+      // Verificar se algum produto no carrinho foi excluído
+      const deletedProducts = JSON.parse(
+        localStorage.getItem("deletedApiProducts") || "[]"
+      );
+
+      if (deletedProducts.length > 0) {
+        items.forEach((item) => {
+          if (
+            deletedProducts.includes(item.id) ||
+            deletedProducts.includes(item.originalApiId)
+          ) {
+            removeItem(item.id);
+            notification.info({
+              message: "Produto removido do carrinho",
+              description: `${item.title} foi removido do carrinho porque foi excluído.`,
+            });
+          }
+        });
+      }
+    }
+  }, [visible, items, removeItem]);
+
   const fallbackImage =
     "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='50' height='50' viewBox='0 0 50 50'%3E%3Crect width='50' height='50' fill='%23f5f5f5'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-family='Arial' font-size='10' fill='%23999'%3EImagem Indisponível%3C/text%3E%3C/svg%3E";
 
-  // Finaliza compra e salva pedido no localStorage
   const handleCheckout = () => {
     if (items.length === 0) {
       notification.warning({
@@ -49,7 +69,6 @@ export default function CartDrawer({ visible, onClose }) {
       status: "completed",
     };
 
-    // Salva pedido no histórico
     const existingOrders = JSON.parse(localStorage.getItem("orders") || "[]");
     localStorage.setItem("orders", JSON.stringify([...existingOrders, order]));
 
@@ -65,7 +84,6 @@ export default function CartDrawer({ visible, onClose }) {
     onClose();
   };
 
-  // Limpa todos os itens do carrinho
   const handleClearCart = () => {
     if (items.length === 0) return;
 
@@ -76,7 +94,6 @@ export default function CartDrawer({ visible, onClose }) {
     });
   };
 
-  // Atualiza quantidade ou remove item se quantidade for 0
   const handleQuantityChange = (productId, value) => {
     if (value === null || value < 1) {
       removeItem(productId);
@@ -89,7 +106,6 @@ export default function CartDrawer({ visible, onClose }) {
     }
   };
 
-  // Calcula quantidade total de itens no carrinho
   const getTotalItemsCount = () =>
     items.reduce((total, item) => total + item.quantity, 0);
 
@@ -120,7 +136,6 @@ export default function CartDrawer({ visible, onClose }) {
         },
       }}
     >
-      {/* Estado vazio do carrinho */}
       {items.length === 0 ? (
         <div className="flex flex-col items-center justify-center h-full p-4">
           <Empty
@@ -133,7 +148,6 @@ export default function CartDrawer({ visible, onClose }) {
         </div>
       ) : (
         <>
-          {/* Lista de itens do carrinho */}
           <div style={{ flex: 1, overflow: "auto", padding: "16px" }}>
             <List
               dataSource={items}
@@ -202,7 +216,6 @@ export default function CartDrawer({ visible, onClose }) {
             />
           </div>
 
-          {/* Rodapé com totais e ações */}
           <div
             style={{
               padding: "16px",

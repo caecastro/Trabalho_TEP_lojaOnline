@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { api } from "../services/api";
 import {
@@ -9,9 +9,22 @@ import {
   setLoading,
   setError,
 } from "../store/slices/productSlice";
+import { removeItem } from "../store/slices/cartSlice";
 
-// Chave para armazenar edições no localStorage
+// Chaves para armazenar estado dos produtos
 const EDITED_API_PRODUCTS_KEY = "editedApiProducts";
+const DELETED_API_PRODUCTS_KEY = "deletedApiProducts";
+
+// Carrega dados do localStorage de forma segura
+const loadFromStorage = (key, defaultValue) => {
+  try {
+    const item = localStorage.getItem(key);
+    return item ? JSON.parse(item) : defaultValue;
+  } catch (error) {
+    console.error(`Erro ao carregar ${key} do localStorage:`, error);
+    return defaultValue;
+  }
+};
 
 export const useProducts = () => {
   const dispatch = useDispatch();
@@ -22,57 +35,92 @@ export const useProducts = () => {
   } = useSelector((state) => state.products);
 
   const [apiProducts, setApiProducts] = useState([]);
-  const [editedApiProducts, setEditedApiProducts] = useState(() => {
-    // Carrega edições salvas do localStorage
-    const saved = localStorage.getItem(EDITED_API_PRODUCTS_KEY);
-    return saved ? JSON.parse(saved) : {};
-  });
 
-  // Salva edições no localStorage sempre que mudar
-  useEffect(() => {
+  // Estados carregados do localStorage
+  const [editedApiProducts, setEditedApiProductsState] = useState(() =>
+    loadFromStorage(EDITED_API_PRODUCTS_KEY, {})
+  );
+
+  const [deletedApiProducts, setDeletedApiProductsState] = useState(() =>
+    loadFromStorage(DELETED_API_PRODUCTS_KEY, [])
+  );
+
+  // Funções para salvar no localStorage sincronamente
+  const setEditedApiProducts = useCallback((newEditedProducts) => {
+    setEditedApiProductsState(newEditedProducts);
     localStorage.setItem(
       EDITED_API_PRODUCTS_KEY,
-      JSON.stringify(editedApiProducts)
+      JSON.stringify(newEditedProducts)
     );
-  }, [editedApiProducts]);
+  }, []);
 
-  const loadApiProducts = async (limit = 5) => {
-    try {
-      dispatch(setLoading(true));
-      const data = await api.getProducts(limit);
+  const setDeletedApiProducts = useCallback((newDeletedProducts) => {
+    setDeletedApiProductsState(newDeletedProducts);
+    localStorage.setItem(
+      DELETED_API_PRODUCTS_KEY,
+      JSON.stringify(newDeletedProducts)
+    );
+  }, []);
 
-      // Aplica edições salvas aos produtos da API
-      const productsWithEdits = data.map((product) => {
-        if (editedApiProducts[product.id]) {
-          return {
-            ...product,
-            ...editedApiProducts[product.id],
-            isEditedApiProduct: true,
-            editedAt:
-              editedApiProducts[product.id].editedAt ||
-              new Date().toISOString(),
-          };
-        }
-        return product;
-      });
+  const loadApiProducts = useCallback(
+    async (limit = 5) => {
+      try {
+        dispatch(setLoading(true));
+        const data = await api.getProducts(limit);
 
-      setApiProducts(productsWithEdits);
-      return productsWithEdits;
-    } catch (err) {
-      dispatch(setError(err.message));
-      throw err;
-    } finally {
-      dispatch(setLoading(false));
+        // Filtra os produtos excluídos
+        const nonDeletedData = data.filter(
+          (product) => !deletedApiProducts.includes(product.id)
+        );
+
+        // Aplica edições aos produtos
+        const productsWithEdits = nonDeletedData.map((product) => {
+          if (editedApiProducts[product.id]) {
+            return {
+              ...product,
+              ...editedApiProducts[product.id],
+              isEditedApiProduct: true,
+              editedAt:
+                editedApiProducts[product.id].editedAt ||
+                new Date().toISOString(),
+              originalApiId: product.id,
+              // Garante que o ID seja o original para edições
+              id: product.id, // Mantém o ID original da API para edições
+            };
+          }
+          return product;
+        });
+
+        setApiProducts(productsWithEdits);
+        return productsWithEdits;
+      } catch (err) {
+        dispatch(setError(err.message));
+        throw err;
+      } finally {
+        dispatch(setLoading(false));
+      }
+    },
+    [deletedApiProducts, editedApiProducts, dispatch]
+  );
+
+  // Recarrega produtos quando editedApiProducts ou deletedApiProducts mudam
+  useEffect(() => {
+    if (apiProducts.length > 0) {
+      loadApiProducts(20);
     }
-  };
+  }, [editedApiProducts, deletedApiProducts]);
 
   const addProductToStore = async (productData) => {
     try {
       const productWithId = {
         ...productData,
-        id: Date.now().toString(),
+        id: `local-${Date.now()}`,
         isLocal: true,
         createdAt: new Date().toISOString(),
+        rating: {
+          rate: 4,
+          count: Math.floor(Math.random() * 500) + 100,
+        },
       };
       dispatch(addProduct(productWithId));
       return productWithId;
@@ -84,29 +132,36 @@ export const useProducts = () => {
   const editProductInStore = async (productId, productData) => {
     try {
       // Verifica se é um produto da API (incluindo já editado)
-      const isApiProduct = apiProducts.some(
+      const productToEdit = [...apiProducts, ...products].find(
         (p) => p.id === productId || p.originalApiId === productId
       );
 
-      if (isApiProduct) {
-        // Encontra o produto original da API
-        const originalProduct = apiProducts.find(
-          (p) => p.id === productId || p.originalApiId === productId
-        );
-        const actualApiId = originalProduct.originalApiId || originalProduct.id;
+      if (!productToEdit) {
+        throw new Error("Produto não encontrado");
+      }
 
-        // Salva as edições no mapa
+      // Determina o ID original da API
+      const actualApiId = productToEdit.originalApiId || productToEdit.id;
+
+      if (!productToEdit.isLocal) {
+        // Produto da API - salva edição
         const updatedEdits = {
           ...editedApiProducts,
           [actualApiId]: {
             ...productData,
             editedAt: new Date().toISOString(),
+            // Garante que todos os campos necessários estão presentes
+            title: productData.title,
+            price: productData.price,
+            description: productData.description,
+            category: productData.category,
+            image: productData.image,
           },
         };
 
         setEditedApiProducts(updatedEdits);
 
-        // Atualiza a lista de produtos da API imediatamente
+        // Atualiza a lista local imediatamente
         const updatedApiProducts = apiProducts.map((product) => {
           if (
             product.id === productId ||
@@ -117,16 +172,15 @@ export const useProducts = () => {
               ...productData,
               isEditedApiProduct: true,
               editedAt: new Date().toISOString(),
+              originalApiId: actualApiId,
             };
           }
           return product;
         });
 
         setApiProducts(updatedApiProducts);
-
-        return productData;
       } else {
-        // Produto local - atualiza normalmente
+        // Produto local
         dispatch(
           updateProduct({
             id: productId,
@@ -141,41 +195,28 @@ export const useProducts = () => {
     }
   };
 
-  const deleteProductFromStore = async (productId) => {
+  const deleteProductFromStore = async (product) => {
     try {
-      // Verifica se é um produto da API editado
-      const editedProduct = apiProducts.find(
-        (p) =>
-          (p.id === productId && p.isEditedApiProduct) ||
-          p.originalApiId === productId
-      );
+      const productId = product.id;
+      const originalApiId = product.originalApiId || productId;
 
-      if (editedProduct) {
-        const apiId = editedProduct.originalApiId || editedProduct.id;
-
-        // Remove do mapa de edições
-        const { [apiId]: removed, ...rest } = editedApiProducts;
+      if (product.isEditedApiProduct) {
+        // Remove edição
+        const { [originalApiId]: removed, ...rest } = editedApiProducts;
         setEditedApiProducts(rest);
-
-        // Remove da lista de produtos da API
-        const updatedApiProducts = apiProducts.filter(
-          (p) =>
-            p.id !== productId &&
-            (p.originalApiId !== apiId || !p.isEditedApiProduct)
-        );
-
-        // Se o produto foi apenas editado (não deletado), restaura o original
-        if (apiProducts.some((p) => p.id === apiId && !p.isEditedApiProduct)) {
-          // Mantém o produto original (remove apenas a edição)
-          setApiProducts(updatedApiProducts.filter((p) => p.id !== productId));
-        } else {
-          // Produto foi completamente removido
-          setApiProducts(updatedApiProducts);
+      } else if (!product.isLocal) {
+        // Produto da API não editado - marca como excluído
+        if (!deletedApiProducts.includes(originalApiId)) {
+          const updatedDeletedProducts = [...deletedApiProducts, originalApiId];
+          setDeletedApiProducts(updatedDeletedProducts);
         }
       } else {
-        // Produto local - remove normalmente
+        // Produto local
         dispatch(removeProduct(productId));
       }
+
+      // Remove do carrinho
+      dispatch(removeItem(productId));
 
       return true;
     } catch (err) {
@@ -183,17 +224,16 @@ export const useProducts = () => {
     }
   };
 
-  // Combina produtos da API (com edições aplicadas) com produtos locais
-  const getCombinedProducts = () => {
-    // Remove duplicatas - se um produto foi editado, não mostra o original
+  // Combina produtos da API com produtos locais
+  const getCombinedProducts = useCallback(() => {
     const uniqueApiProducts = apiProducts.filter((apiProduct) => {
-      // Se este produto é uma edição de outro, verifica se o original ainda está na lista
+      // Se for produto editado, não mostra o original
       if (apiProduct.isEditedApiProduct && apiProduct.originalApiId) {
         return !apiProducts.some(
           (p) => p.id === apiProduct.originalApiId && !p.isEditedApiProduct
         );
       }
-      // Se é um produto original, verifica se não há uma versão editada dele
+      // Se for produto original, verifica se não tem edição
       if (!apiProduct.isEditedApiProduct) {
         return !apiProducts.some(
           (p) => p.originalApiId === apiProduct.id && p.isEditedApiProduct
@@ -207,13 +247,25 @@ export const useProducts = () => {
     );
 
     return [...uniqueApiProducts, ...localProducts];
+  }, [apiProducts, products]);
+
+  const restoreAllProducts = () => {
+    setEditedApiProducts({});
+    setDeletedApiProducts([]);
   };
 
-  // Função para limpar todas as edições
-  const clearAllEdits = () => {
-    setEditedApiProducts({});
-    // Recarrega os produtos da API sem edições
-    loadApiProducts(20);
+  const restoreProduct = (productId) => {
+    if (editedApiProducts[productId]) {
+      // Remove edição
+      const { [productId]: removed, ...rest } = editedApiProducts;
+      setEditedApiProducts(rest);
+    } else if (deletedApiProducts.includes(productId)) {
+      // Remove da lista de excluídos
+      const updatedDeleted = deletedApiProducts.filter(
+        (id) => id !== productId
+      );
+      setDeletedApiProducts(updatedDeleted);
+    }
   };
 
   return {
@@ -221,12 +273,14 @@ export const useProducts = () => {
     apiProducts,
     localProducts: products.filter((p) => p.isLocal && !p.isEditedApiProduct),
     editedApiProducts,
+    deletedApiProducts,
     loading,
     error,
     loadApiProducts,
     addProduct: addProductToStore,
     editProduct: editProductInStore,
     deleteProduct: deleteProductFromStore,
-    clearAllEdits,
+    restoreAllProducts,
+    restoreProduct,
   };
 };
