@@ -12,7 +12,7 @@ import {
   Typography,
   message,
   Image,
-} from "antd"; // ADICIONE Image
+} from "antd";
 import { useTheme } from "../../contexts/ThemeContext";
 import { useCart } from "../../hooks/useCart";
 import {
@@ -24,9 +24,9 @@ import {
   UserOutlined,
   MenuOutlined,
   LogoutOutlined,
-  UserSwitchOutlined,
 } from "@ant-design/icons";
 import CartDrawer from "./CartDrawer";
+import ClientSelector from "./ClientSelector";
 
 const { useBreakpoint } = Grid;
 const { Text } = Typography;
@@ -38,23 +38,21 @@ export default function Controller() {
   const { isDarkMode, toggleTheme } = useTheme();
   const { getTotalItems } = useCart();
   const [cartVisible, setCartVisible] = useState(false);
+  const [clientSelectorVisible, setClientSelectorVisible] = useState(false);
   const screens = useBreakpoint();
-
-  const mockUser = {
-    id: 1,
-    name: "John Doe",
-    username: "johndoe",
-    email: "john.doe@example.com",
-  };
 
   const handleLogout = () => {
     logout();
-    message.success("Logout realizado com sucesso!");
+    message.success("Logged out successfully!");
   };
 
-  const handleLogin = () => {
-    login(mockUser);
-    message.success("Login realizado com sucesso!");
+  const openClientSelector = () => {
+    setClientSelectorVisible(true);
+  };
+
+  const handleClientSelected = (clientData) => {
+    login(clientData);
+    message.success(`Logged in as ${clientData.name}`);
   };
 
   const getNavButtonStyle = (path) => {
@@ -114,9 +112,9 @@ export default function Controller() {
       : [
           {
             key: "6",
-            icon: <UserSwitchOutlined />,
+            icon: <UserOutlined />,
             label: "Login",
-            onClick: handleLogin,
+            onClick: openClientSelector,
           },
         ]),
   ];
@@ -128,10 +126,10 @@ export default function Controller() {
           label: (
             <div className="px-2 py-1 border-b border-gray-200 dark:border-gray-700">
               <Text strong className="text-xs sm:text-sm block">
-                {user.name || "User"}
+                {user.name || "Client"}
               </Text>
               <Text type="secondary" className="block text-xs">
-                {user.email || "user@example.com"}
+                {user.email || "client@example.com"}
               </Text>
             </div>
           ),
@@ -155,14 +153,14 @@ export default function Controller() {
     : [
         {
           key: "login",
-          icon: <UserSwitchOutlined />,
+          icon: <UserOutlined />,
           label: "Login",
-          onClick: handleLogin,
+          onClick: openClientSelector,
         },
       ];
 
   const getAbbreviatedName = (name) => {
-    if (!name) return "User";
+    if (!name) return "C";
     if (screens.xs)
       return name
         .split(" ")
@@ -171,12 +169,17 @@ export default function Controller() {
         .toUpperCase();
     if (screens.sm) {
       const names = name.split(" ");
-      return names.length > 1 ? `${names[0]} ${names[1][0]}.` : names[0];
+      return names.length > 1 ? `${names[0][0]}${names[1][0]}` : names[0][0];
     }
-    return name;
+    return name[0];
   };
 
-  const getUserAvatar = () => user?.name?.charAt(0).toUpperCase() || "U";
+  const getUserAvatar = () => {
+    if (user?.name) {
+      return user.name.charAt(0).toUpperCase();
+    }
+    return "C";
+  };
 
   return (
     <>
@@ -193,22 +196,13 @@ export default function Controller() {
           }`}
         >
           <div className="flex items-center justify-between gap-2 sm:gap-4">
-            {/* LOGO ATUALIZADA AQUI - ÍCONE ANTIGO SUBSTITUÍDO */}
+            {/* Logo */}
             <div
               className="flex items-center gap-1 sm:gap-2 cursor-pointer flex-shrink-0"
               onClick={() => navigate("/")}
             >
-              {/* ÍCONE ANTIGO REMOVIDO
-              <img
-                src="https://cdn-icons-png.flaticon.com/512/3081/3081559.png"
-                alt="Logo"
-                className={screens.xs ? "w-6 h-6" : "w-7 h-7 sm:w-8 sm:h-8"}
-              />
-              */}
-
-              {/* NOVO LOGO DO SEU PNG */}
               <Image
-                src="/logo.png" // Caminho relativo à pasta public
+                src="/logo.png"
                 alt="Shop Logo"
                 width={screens.xs ? 32 : 40}
                 height={screens.xs ? 32 : 40}
@@ -229,6 +223,7 @@ export default function Controller() {
               </span>
             </div>
 
+            {/* Desktop Navigation */}
             <div className="hidden md:flex items-center gap-1 lg:gap-2 flex-1 justify-center">
               <Button
                 type="text"
@@ -256,27 +251,6 @@ export default function Controller() {
               </Button>
             </div>
 
-            <div className="hidden sm:flex md:hidden items-center gap-1 flex-1 justify-center">
-              <Button
-                type="text"
-                icon={<HomeOutlined />}
-                className={getNavButtonStyle("/")}
-                onClick={() => navigate("/")}
-              />
-              <Button
-                type="text"
-                icon={<ShoppingOutlined />}
-                className={getNavButtonStyle("/products")}
-                onClick={() => navigate("/products")}
-              />
-              <Button
-                type="text"
-                icon={<UserOutlined />}
-                className={getNavButtonStyle("/clients")}
-                onClick={() => navigate("/clients")}
-              />
-            </div>
-
             <div className="flex items-center gap-1 sm:gap-2 lg:gap-3 flex-shrink-0">
               <Switch
                 checked={isDarkMode}
@@ -284,9 +258,6 @@ export default function Controller() {
                 checkedChildren={<BulbFilled className="text-yellow-400" />}
                 unCheckedChildren={<BulbOutlined />}
                 size={screens.xs ? "small" : "default"}
-                title={
-                  isDarkMode ? "Switch to Light Mode" : "Switch to Dark Mode"
-                }
               />
 
               <Badge
@@ -305,11 +276,21 @@ export default function Controller() {
                       : "text-gray-700 hover:text-gray-900"
                   }
                   size={screens.xs ? "small" : "middle"}
-                  title="Shopping Cart"
                 >
                   {screens.lg && "Cart"}
                 </Button>
               </Badge>
+
+              {screens.lg && !user && (
+                <Button
+                  type="primary"
+                  onClick={openClientSelector}
+                  icon={<UserOutlined />}
+                  size="middle"
+                >
+                  Login
+                </Button>
+              )}
 
               {screens.lg && user && (
                 <Space size="small">
@@ -330,7 +311,7 @@ export default function Controller() {
                         isDarkMode ? "text-gray-300" : "text-gray-700"
                       }`}
                     >
-                      {getAbbreviatedName(user.name)}
+                      {user.name || "Client"}
                     </Text>
                   </div>
                   <Button
@@ -344,34 +325,7 @@ export default function Controller() {
                 </Space>
               )}
 
-              {screens.sm && !screens.lg && user && (
-                <Space size="small">
-                  <Avatar
-                    size="small"
-                    style={{ backgroundColor: "#1890ff", fontSize: "12px" }}
-                  >
-                    {getUserAvatar()}
-                  </Avatar>
-                  <Button
-                    type="text"
-                    icon={<LogoutOutlined />}
-                    onClick={handleLogout}
-                    size="small"
-                    title="Logout"
-                  />
-                </Space>
-              )}
-
-              {screens.sm && !user && (
-                <Button
-                  type="text"
-                  size={screens.sm ? "small" : "middle"}
-                  onClick={handleLogin}
-                >
-                  {screens.lg ? "Login" : <UserSwitchOutlined />}
-                </Button>
-              )}
-
+              {/* Menu mobile */}
               <div className="sm:hidden">
                 <Dropdown
                   menu={{ items: mobileMenuItems }}
@@ -392,108 +346,39 @@ export default function Controller() {
                 </Dropdown>
               </div>
 
+              {/* Menu desktop para telas médias */}
               {screens.sm && !screens.lg && (
-                <div className="md:hidden">
-                  <Dropdown
-                    menu={{ items: userMenuItems }}
-                    placement="bottomRight"
-                    trigger={["click"]}
-                    arrow
-                  >
-                    <Button
-                      type="text"
-                      size="small"
-                      icon={!user ? <UserSwitchOutlined /> : null}
-                    >
-                      {user && (
-                        <Avatar
-                          size="small"
-                          style={{ backgroundColor: "#1890ff" }}
-                        >
-                          {getUserAvatar()}
-                        </Avatar>
-                      )}
-                    </Button>
-                  </Dropdown>
-                </div>
-              )}
-
-              {screens.lg && user && (
-                <div className="lg:hidden xl:block">
-                  <Dropdown
-                    menu={{ items: userMenuItems }}
-                    placement="bottomRight"
-                    trigger={["click"]}
-                    arrow
-                  >
-                    <Button type="text" size="middle">
+                <Dropdown
+                  menu={{ items: userMenuItems }}
+                  placement="bottomRight"
+                  trigger={["click"]}
+                  arrow
+                >
+                  <Button type="text" size="small">
+                    {user ? (
                       <Avatar
                         size="small"
-                        style={{
-                          backgroundColor: "#1890ff",
-                          marginRight: "8px",
-                        }}
+                        style={{ backgroundColor: "#1890ff" }}
                       >
                         {getUserAvatar()}
                       </Avatar>
-                      <span className="text-sm">Menu</span>
-                    </Button>
-                  </Dropdown>
-                </div>
+                    ) : (
+                      <UserOutlined />
+                    )}
+                  </Button>
+                </Dropdown>
               )}
             </div>
           </div>
-
-          {screens.sm && !screens.md && (
-            <div className="flex justify-center mt-2">
-              <Space size="middle">
-                <Button
-                  type="text"
-                  size="small"
-                  className={`text-xs ${
-                    location.pathname === "/"
-                      ? "text-blue-600 font-semibold"
-                      : isDarkMode
-                      ? "text-gray-400 hover:text-gray-300"
-                      : "text-gray-600 hover:text-gray-800"
-                  }`}
-                  onClick={() => navigate("/")}
-                >
-                  Home
-                </Button>
-                <Button
-                  type="text"
-                  size="small"
-                  className={`text-xs ${
-                    location.pathname === "/products"
-                      ? "text-blue-600 font-semibold"
-                      : isDarkMode
-                      ? "text-gray-400 hover:text-gray-300"
-                      : "text-gray-600 hover:text-gray-800"
-                  }`}
-                  onClick={() => navigate("/products")}
-                >
-                  Products
-                </Button>
-                <Button
-                  type="text"
-                  size="small"
-                  className={`text-xs ${
-                    location.pathname === "/clients"
-                      ? "text-blue-600 font-semibold"
-                      : isDarkMode
-                      ? "text-gray-400 hover:text-gray-300"
-                      : "text-gray-600 hover:text-gray-800"
-                  }`}
-                  onClick={() => navigate("/clients")}
-                >
-                  Clients
-                </Button>
-              </Space>
-            </div>
-          )}
         </div>
       </header>
+
+      {/* Componente ClientSelector */}
+      <ClientSelector
+        visible={clientSelectorVisible}
+        onClose={() => setClientSelectorVisible(false)}
+        onSelectClient={handleClientSelected}
+      />
 
       <CartDrawer visible={cartVisible} onClose={() => setCartVisible(false)} />
     </>

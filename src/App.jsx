@@ -11,11 +11,10 @@ export default function App() {
   return (
     <Layout style={{ minHeight: "100vh" }}>
       <Controller />
-      {/* O Controller já tem o logo, então NÃO precisa de logo aqui no App */}
 
       <Content
         style={{
-          padding: token.paddingLG,
+          padding: `${token.paddingLG}px ${token.paddingLG}px 0`,
           backgroundColor: token.colorBgContainer,
           display: "flex",
           flexDirection: "column",
@@ -25,9 +24,10 @@ export default function App() {
         <div
           style={{
             textAlign: "center",
-            marginBottom: token.marginXXL,
+            marginBottom: token.marginLG,
             maxWidth: 800,
             width: "100%",
+            paddingTop: token.paddingXL,
           }}
         >
           <Title
@@ -35,23 +35,33 @@ export default function App() {
             style={{
               color: token.colorTextHeading,
               marginBottom: token.marginSM,
+              fontWeight: 400,
+              fontSize: "2.5rem",
+              letterSpacing: "0.5px",
             }}
           >
             Welcome to the Shop
           </Title>
           <Title
             level={2}
-            type="secondary"
             style={{
               color: token.colorTextSecondary,
-              marginBottom: token.marginXXL,
+              fontWeight: 300,
+              fontSize: "1.5rem",
+              margin: 0,
             }}
           >
             Top 5 Products
           </Title>
         </div>
 
-        <div style={{ width: "100%", maxWidth: 1200 }}>
+        <div
+          style={{
+            width: "100%",
+            maxWidth: 900,
+            marginBottom: token.marginXXL,
+          }}
+        >
           <Produtos />
         </div>
       </Content>
@@ -62,9 +72,11 @@ export default function App() {
           borderTop: `1px solid ${token.colorBorder}`,
           color: token.colorTextSecondary,
           padding: `${token.paddingLG}px 0`,
+          fontSize: "0.875rem",
+          backgroundColor: token.colorBgLayout,
         }}
       >
-        IFSC ©2025 Created by Lidiane Visintin
+        IFSC 2025 | Created by Lidiane Visintin
       </Footer>
     </Layout>
   );
